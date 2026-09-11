@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hidden-rules-mission-game"
+version = "0.1.0.dev1"
+description = "Deterministic common-rules development slice of the Hidden Rules Mission Game"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+mission-game = "mission_game.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mission_game*"]
+
+[tool.setuptools.package-data]
+mission_game = ["public_player_guide.md", "web/*.html", "web/*.css", "web/*.js"]

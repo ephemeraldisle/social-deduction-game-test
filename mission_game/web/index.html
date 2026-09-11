@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f1e9">
+  <meta name="description" content="A local table for Hidden Rules Mission Game. Play a seat, follow the evidence, and review every attempt.">
+  <title>Hidden Rules · The table</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%231e3533'/%3E%3Ccircle cx='15' cy='15' r='7' fill='%23deb76b'/%3E%3Ccircle cx='25' cy='25' r='7' fill='none' stroke='%23f6f2e8' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#library" aria-label="Hidden Rules game library">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+      <span>Hidden Rules <small>THE MISSION TABLE</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <button class="nav-button" data-command="library">Game library</button>
+      <button class="nav-button" data-command="help"><span class="help-symbol">?</span> How to play</button>
+    </nav>
+    <span class="local-label"><i></i> Local table</span>
+  </header>
+  <main id="app"><div class="loading"><span class="eyebrow">PULL UP A CHAIR</span><h1>Opening your table…</h1></div></main>
+  <div id="toast" class="toast" role="alert" hidden></div>
+  <span id="announcer" class="sr-only" role="status" aria-live="polite"></span>
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <div class="dialog-top"><span class="eyebrow">A QUICK FIELD GUIDE</span><button class="icon-button" data-command="close-help" aria-label="Close help">×</button></div>
+    <h2 id="help-title">One table. Two teams.<br>Four missions to win.</h2>
+    <div class="help-steps">
+      <p><b>1. Make a proposal.</b> The chairman picks a crew. Each crew member makes a public pledge; everyone votes. Five Yes votes approve. After the full vote, everyone receives one token, pass or fail.</p>
+      <p><b>2. Commit in secret.</b> The crew spends tokens. A contribution can differ from its pledge. Only the final pot and wallets are made public.</p>
+      <p><b>3. Read the result.</b> Reach the mission's funding target to score. Blue beats Red on a tie. Green funds the mission but cannot own it.</p>
+      <p><b>4. Hear the table.</b> Players report what happened. These are claims, and may be false. Everyone gets one token if the game continues.</p>
+    </div>
+    <div class="note">Read your private objective: it may add a condition to winning with your team or explicitly change which team you want to win. New tables deal private objectives and hidden abilities. Read your own ability for its timing and controls. Contrarian is disabled. Earlier saves keep their original rules. Computer players use scripted policies and can make imperfect decisions.</div>
+    <details><summary>Read all common rules</summary><div id="full-guide" class="full-guide"></div></details>
+  </dialog>
+  <noscript>This local table needs JavaScript. The terminal interface remains available with python3 -m mission_game.cli play.</noscript>
+</body>
+</html>
