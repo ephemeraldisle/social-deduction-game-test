@@ -1,0 +1,332 @@
+{
+  "source": "/private/tmp/hidden-rules-web-check/web/fd63f945-f230-40bf-9867-b43956919bfd/session.json",
+  "replay_verified": true,
+  "metrics": {
+    "game_id": "fd63f945-f230-40bf-9867-b43956919bfd",
+    "rules_version": "0.1-objectives-dev.2",
+    "mode": "development_objectives",
+    "status": "FINISHED",
+    "policy_versions": [
+      "social.6"
+    ],
+    "winner": "blue",
+    "blue_players": 6,
+    "attempts": 4,
+    "missions": 4,
+    "mission_attempts": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "rejected_proposals": 2,
+    "penalty_attempts": 0,
+    "individual_winners": 4,
+    "actions": 91,
+    "score": {
+      "blue": 3,
+      "red": 1
+    },
+    "objectives": [
+      {
+        "player_id": "p0",
+        "objective": "spendthrift",
+        "team": "red",
+        "won": false,
+        "condition_satisfied": true
+      },
+      {
+        "player_id": "p1",
+        "objective": "reliable_partner",
+        "team": "blue",
+        "won": true,
+        "condition_satisfied": true
+      },
+      {
+        "player_id": "p2",
+        "objective": "loyalist",
+        "team": "blue",
+        "won": true,
+        "condition_satisfied": true
+      },
+      {
+        "player_id": "p3",
+        "objective": "opposition_patron",
+        "team": "blue",
+        "won": false,
+        "condition_satisfied": false
+      },
+      {
+        "player_id": "p4",
+        "objective": "contrarian",
+        "team": "blue",
+        "won": false,
+        "condition_satisfied": false
+      },
+      {
+        "player_id": "p5",
+        "objective": "loyalist",
+        "team": "blue",
+        "won": true,
+        "condition_satisfied": true
+      },
+      {
+        "player_id": "p6",
+        "objective": "loyalist",
+        "team": "blue",
+        "won": true,
+        "condition_satisfied": true
+      },
+      {
+        "player_id": "p7",
+        "objective": "loyalist",
+        "team": "red",
+        "won": false,
+        "condition_satisfied": true
+      }
+    ]
+  },
+  "complaints": {
+    "More me": 7,
+    "Less player": 6,
+    "More Blue": 7
+  },
+  "more_blue_votes": [
+    {
+      "step": 25,
+      "player_id": "p4",
+      "objective": "contrarian",
+      "team": "blue",
+      "crew": [
+        "p3",
+        "p5"
+      ],
+      "threshold": 11,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -6.935661641456062,
+      "outcome_likelihoods": {
+        "blue": 0.7990490881130032,
+        "red": 0.006614447072545973,
+        "incomplete": 0.19433646481445066,
+        "personal_win": 0.0,
+        "personal_loss": 0.0,
+        "continues": 0.9999999999999999
+      },
+      "suspected_blue_block": true
+    },
+    {
+      "step": 28,
+      "player_id": "p7",
+      "objective": "loyalist",
+      "team": "red",
+      "crew": [
+        "p3",
+        "p5"
+      ],
+      "threshold": 11,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -7.1140870405302845,
+      "outcome_likelihoods": {
+        "blue": 0.7868070490806763,
+        "red": 0.0033977409218626633,
+        "incomplete": 0.2097952099974611,
+        "personal_win": 0.0,
+        "personal_loss": 0.0,
+        "continues": 1.0
+      },
+      "suspected_blue_block": true
+    },
+    {
+      "step": 38,
+      "player_id": "p3",
+      "objective": "opposition_patron",
+      "team": "blue",
+      "crew": [
+        "p0",
+        "p6"
+      ],
+      "threshold": 9,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -71.2673049673427,
+      "outcome_likelihoods": {
+        "blue": 0.7211457862262871,
+        "red": 0.08201486552209734,
+        "incomplete": 0.19683934825161553,
+        "personal_win": 0.0,
+        "personal_loss": 0.7211457862262871,
+        "continues": 0.27885421377371294
+      },
+      "suspected_blue_block": false
+    },
+    {
+      "step": 39,
+      "player_id": "p4",
+      "objective": "contrarian",
+      "team": "blue",
+      "crew": [
+        "p0",
+        "p6"
+      ],
+      "threshold": 9,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -77.38216141674538,
+      "outcome_likelihoods": {
+        "blue": 0.7577050477201499,
+        "red": 0.07183529865972953,
+        "incomplete": 0.17045965362012055,
+        "personal_win": 0.0,
+        "personal_loss": 0.7577050477201499,
+        "continues": 0.24229495227985007
+      },
+      "suspected_blue_block": true
+    },
+    {
+      "step": 42,
+      "player_id": "p7",
+      "objective": "loyalist",
+      "team": "red",
+      "crew": [
+        "p0",
+        "p6"
+      ],
+      "threshold": 9,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -77.5225131534538,
+      "outcome_likelihoods": {
+        "blue": 0.7663611831755476,
+        "red": 0.04905326419226943,
+        "incomplete": 0.1845855526321831,
+        "personal_win": 0.0,
+        "personal_loss": 0.7663611831755476,
+        "continues": 0.23363881682445253
+      },
+      "suspected_blue_block": true
+    },
+    {
+      "step": 62,
+      "player_id": "p7",
+      "objective": "loyalist",
+      "team": "red",
+      "crew": [
+        "p0",
+        "p4"
+      ],
+      "threshold": 9,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -75.70180446494804,
+      "outcome_likelihoods": {
+        "blue": 0.7491148854455181,
+        "red": 0.06629956192229883,
+        "incomplete": 0.1845855526321831,
+        "personal_win": 0.0,
+        "personal_loss": 0.7491148854455181,
+        "continues": 0.2508851145544819
+      },
+      "suspected_blue_block": true
+    },
+    {
+      "step": 66,
+      "player_id": "p3",
+      "objective": "opposition_patron",
+      "team": "blue",
+      "crew": [
+        "p0",
+        "p4"
+      ],
+      "threshold": 9,
+      "wallet_capacity": 12,
+      "promised_blue": 12,
+      "private_utility": -69.76234278424572,
+      "outcome_likelihoods": {
+        "blue": 0.7077686920635421,
+        "red": 0.09539195968484228,
+        "incomplete": 0.19683934825161556,
+        "personal_win": 0.0,
+        "personal_loss": 0.7077686920635421,
+        "continues": 0.29223130793645785
+      },
+      "suspected_blue_block": false
+    }
+  ],
+  "fran_pledge_comparison": [
+    {
+      "own_blue": 1,
+      "score": 47.338632403146995,
+      "expected_deposits": {
+        "p0": {
+          "blue": 0.5851503078076412,
+          "red": 0.4148496921923588,
+          "green": 0.0
+        },
+        "p1": {
+          "blue": 2.400064755453224,
+          "red": 0.5999352445467763,
+          "green": 0.0
+        },
+        "p2": {
+          "blue": 2.4451382079191935,
+          "red": 0.5548617920808067,
+          "green": 0.0
+        },
+        "p5": {
+          "blue": 1,
+          "red": 0,
+          "green": 0
+        }
+      },
+      "outcome_likelihoods": {
+        "blue": 0.9630132061198154,
+        "red": 0.03698679388018458,
+        "incomplete": 0.0,
+        "personal_win": 0.9630132061198154,
+        "personal_loss": 0.0,
+        "continues": 0.03698679388018458
+      }
+    },
+    {
+      "own_blue": 2,
+      "score": 1.3078976810164016,
+      "expected_deposits": {
+        "p0": {
+          "blue": 0.5851503078076412,
+          "red": 0.4148496921923588,
+          "green": 0.0
+        },
+        "p1": {
+          "blue": 1.6000431703021492,
+          "red": 0.39995682969785085,
+          "green": 0.0
+        },
+        "p2": {
+          "blue": 1.6300921386127956,
+          "red": 0.36990786138720444,
+          "green": 0.0
+        },
+        "p5": {
+          "blue": 2,
+          "red": 0,
+          "green": 0
+        }
+      },
+      "outcome_likelihoods": {
+        "blue": 0.0,
+        "red": 0.0,
+        "incomplete": 1.0,
+        "personal_win": 0.0,
+        "personal_loss": 0.0,
+        "continues": 1.0
+      }
+    }
+  ],
+  "total_paid": {
+    "blue": 26,
+    "red": 19,
+    "green": 0
+  }
+}

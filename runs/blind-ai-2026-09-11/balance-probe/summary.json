@@ -1,0 +1,30 @@
+{
+  "fresh_default": {
+    "n": 12,
+    "winners": {
+      "blue": 9,
+      "red": 3
+    }
+  },
+  "fresh_loyalist": {
+    "n": 12,
+    "winners": {
+      "blue": 11,
+      "red": 1
+    }
+  },
+  "same_deal_simple": {
+    "n": 6,
+    "winners": {
+      "blue": 1,
+      "red": 5
+    }
+  },
+  "same_deal_social": {
+    "n": 6,
+    "winners": {
+      "blue": 5,
+      "red": 1
+    }
+  }
+}

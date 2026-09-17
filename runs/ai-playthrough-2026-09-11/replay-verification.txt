@@ -1,0 +1,283 @@
+Replay verified against the saved state.
+Development game started: private objectives; abilities enabled.
+Attempt 1 · Mission 1: threshold 15, crew 2.
+Attempt 1 · p5 proposed p5, p7.
+Attempt 1 · Player pledges: p5: 5 Blue; p7: 5 Blue
+Attempt 1 · p5 voted Yes
+Attempt 1 · p6 voted No; complaints: less p5
+Attempt 1 · p7 voted No; complaints: less p5
+Attempt 1 · p0 voted No; complaints: less p5
+Attempt 1 · p1 voted No; complaints: less p5
+Attempt 1 · p2 voted No; complaints: less p5
+Attempt 1 · p3 voted No; complaints: less p5
+Attempt 1 · p4 voted No; complaints: less p5
+Attempt 1 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 1 · Proposal rejected (1 of 8).
+Attempt 1 · p6 proposed p2, p6.
+Attempt 1 · Player pledges: p2: 0 tokens; p6: 6 Blue
+Attempt 1 · p6 voted Yes
+Attempt 1 · p7 voted Yes
+Attempt 1 · p0 voted No; complaints: more p2 blue
+Attempt 1 · p1 voted No; complaints: more blue
+Attempt 1 · p2 voted Yes
+Attempt 1 · p3 voted No; complaints: less p2
+Attempt 1 · p4 voted No; complaints: less p2
+Attempt 1 · p5 voted No; complaints: more p5
+Attempt 1 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 1 · Proposal rejected (2 of 8).
+Attempt 1 · p7 proposed p6, p7.
+Attempt 1 · Player pledges: p6: 7 Blue; p7: 7 Blue
+Attempt 1 · p7 voted Yes
+Attempt 1 · p0 voted Yes
+Attempt 1 · p1 voted No; complaints: more p1
+Attempt 1 · p2 voted Yes
+Attempt 1 · p3 voted No; complaints: more blue
+Attempt 1 · p4 voted No; complaints: more blue
+Attempt 1 · p5 voted No; complaints: more p5
+Attempt 1 · p6 voted Yes
+Attempt 1 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 1 · Proposal rejected (3 of 8).
+Attempt 1 · p0 proposed p0, p6.
+Attempt 1 · Player pledges: p0: 8 Blue; p6: 8 Blue
+Attempt 1 · p0 voted Yes
+Attempt 1 · p1 voted No; complaints: more p1
+Attempt 1 · p2 voted Yes
+Attempt 1 · p3 voted No; complaints: more blue
+Attempt 1 · p4 voted No; complaints: more blue
+Attempt 1 · p5 voted No; complaints: more p5
+Attempt 1 · p6 voted Yes
+Attempt 1 · p7 voted Yes
+Attempt 1 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 1 · Proposal rejected (4 of 8).
+Attempt 1 · p1 proposed p1, p6.
+Attempt 1 · Player pledges: p1: 3 Blue; p6: 9 Blue
+Attempt 1 · p1 voted Yes
+Attempt 1 · p2 voted Yes
+Attempt 1 · p3 voted No; complaints: less p1
+Attempt 1 · p4 voted No; complaints: less p1
+Attempt 1 · p5 voted No; complaints: more p5
+Attempt 1 · p6 voted Yes
+Attempt 1 · p7 voted Yes
+Attempt 1 · p0 voted Yes
+Attempt 1 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 1 · Proposal approved with 5 Yes votes.
+Attempt 1 · OFFICIAL RESULT (approved crew): 11 Blue; mission remains open.
+Attempt 1 · Player reports: p1 claims p1 gave 4 Blue; p6 claims p6 gave 9 Blue
+Attempt 1 · OFFICIAL: everyone receives 1 token.
+Attempt 2 · p2 proposed p1, p2.
+Attempt 2 · Player pledges: p1: 2 Blue; p2: 2 Blue
+Attempt 2 · p2 voted Yes
+Attempt 2 · p3 voted No; complaints: more blue
+Attempt 2 · p4 voted No; complaints: more blue
+Attempt 2 · p5 voted No; complaints: more p5
+Attempt 2 · p6 voted Yes
+Attempt 2 · p7 voted Yes
+Attempt 2 · p0 voted Yes
+Attempt 2 · p1 voted Yes
+Attempt 2 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 2 · Proposal approved with 5 Yes votes.
+Attempt 2 · OFFICIAL RESULT (approved crew): 16 Blue; Blue wins the mission.
+Attempt 2 · Player reports: p1 claims p1 gave 2 Blue; p2 claims p2 gave 2 Blue
+Attempt 2 · OFFICIAL: everyone receives 1 token.
+Attempt 3 · Mission 2: threshold 17, crew 2.
+Attempt 3 · p3 proposed p1, p3.
+Attempt 3 · Player pledges: p1: 2 Blue; p3: 16 Blue
+Attempt 3 · p3 voted Yes
+Attempt 3 · p4 voted No; complaints: less p1
+Attempt 3 · p5 voted No; complaints: more p5
+Attempt 3 · p6 voted Yes
+Attempt 3 · p7 voted Yes
+Attempt 3 · p0 voted No; complaints: less p3
+Attempt 3 · p1 voted Yes
+Attempt 3 · p2 voted Yes
+Attempt 3 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 3 · Proposal approved with 5 Yes votes.
+Attempt 3 · OFFICIAL RESULT (approved crew): 3 Blue, 17 Red; Red wins the mission.
+Attempt 3 · Player reports: p1 claims p1 gave 2 Blue; p3 claims p3 gave 17 Blue
+Attempt 3 · OFFICIAL: everyone receives 1 token.
+Attempt 4 · Mission 3: threshold 25, crew 3.
+Attempt 4 · p4 proposed p0, p1, p4.
+Attempt 4 · Player pledges: p0: 15 Blue; p1: 2 Blue; p4: 12 Blue
+Attempt 4 · p4 voted No; complaints: less p1
+Attempt 4 · p5 voted No; complaints: more p5
+Attempt 4 · p6 voted No; complaints: more p6
+Attempt 4 · p7 voted Yes
+Attempt 4 · p0 voted Yes
+Attempt 4 · p1 voted Yes
+Attempt 4 · p2 voted No; complaints: less p4
+Attempt 4 · p3 voted Yes
+Attempt 4 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 4 · Proposal rejected (1 of 8).
+Attempt 4 · p5 proposed p1, p5, p6.
+Attempt 4 · Player pledges: p1: 2 Blue; p5: 16 Blue; p6: 7 Blue
+Attempt 4 · p5 voted Yes
+Attempt 4 · p6 voted No; complaints: less p5
+Attempt 4 · p7 voted No; complaints: less p5
+Attempt 4 · p0 voted No; complaints: less p5
+Attempt 4 · p1 voted No; complaints: less p5
+Attempt 4 · p2 voted No; complaints: less p5
+Attempt 4 · p3 voted No; complaints: less p5
+Attempt 4 · p4 voted No; complaints: less p5
+Attempt 4 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 4 · Proposal rejected (2 of 8).
+Attempt 4 · p6 proposed p0, p6, p7.
+Attempt 4 · Player pledges: p0: 12 Blue; p6: 0 tokens; p7: 17 Blue
+Attempt 4 · p6 voted Yes
+Attempt 4 · p7 voted Yes
+Attempt 4 · p0 voted Yes
+Attempt 4 · p1 voted No; complaints: more p1
+Attempt 4 · p2 voted Yes
+Attempt 4 · p3 voted Yes
+Attempt 4 · p4 voted No; complaints: less p6
+Attempt 4 · p5 voted No; complaints: more p5
+Attempt 4 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 4 · Proposal approved with 5 Yes votes.
+Attempt 4 · OFFICIAL RESULT (approved crew): 31 Blue; Blue wins the mission.
+Attempt 4 · Player reports: p0 claims p0 gave 12 Blue; p0 claims p7 gave 17 Blue; p6 claims p6 gave 0 Blue; p7 claims p7 gave 17 Blue
+Attempt 4 · OFFICIAL: everyone receives 1 token.
+Attempt 5 · Mission 4: threshold 24, crew 3.
+Attempt 5 · p7 proposed p1, p6, p7.
+Attempt 5 · Player pledges: p1: 5 Blue; p6: 10 Blue; p7: 2 Blue
+Attempt 5 · p7 voted Yes
+Attempt 5 · p0 voted Yes
+Attempt 5 · p1 voted Yes
+Attempt 5 · p2 voted Yes
+Attempt 5 · p3 voted Yes
+Attempt 5 · p4 voted No; complaints: less p7
+Attempt 5 · p5 voted No; complaints: more p5
+Attempt 5 · p6 voted Yes
+Attempt 5 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 5 · Proposal approved with 6 Yes votes.
+Attempt 5 · OFFICIAL RESULT (approved crew): 20 Blue; mission remains open.
+Attempt 5 · Player reports: p1 claims p1 gave 6 Blue; p6 claims p6 gave 10 Blue; p7 claims p7 gave 2 Blue
+Attempt 5 · OFFICIAL: everyone receives 1 token.
+Attempt 6 · p0 proposed p0, p1, p6.
+Attempt 6 · Player pledges: p0: 4 Blue; p1: 2 Blue; p6: 2 Blue
+Attempt 6 · p0 voted Yes
+Attempt 6 · p1 voted Yes
+Attempt 6 · p2 voted Yes
+Attempt 6 · p3 voted Yes
+Attempt 6 · p4 voted No; complaints: more blue
+Attempt 6 · p5 voted No; complaints: more p5
+Attempt 6 · p6 voted Yes
+Attempt 6 · p7 voted Yes
+Attempt 6 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 6 · Proposal approved with 6 Yes votes.
+Attempt 6 · OFFICIAL RESULT (approved crew): 29 Blue; Blue wins the mission.
+Attempt 6 · Player reports: p0 claims p0 gave 4 Blue; p0 claims p1 gave 2 Blue; p1 claims p1 gave 2 Blue; p6 claims p6 gave 2 Blue
+Attempt 6 · OFFICIAL: everyone receives 1 token.
+Attempt 7 · Mission 5: threshold 25, crew 5.
+Attempt 7 · p1 proposed p0, p1, p2, p3, p4.
+Attempt 7 · Player pledges: p0: 7 Blue; p1: 1 Blue; p2: 12 Blue; p3: 9 Blue; p4: 17 Blue
+Attempt 7 · p1 voted Yes
+Attempt 7 · p2 voted No; complaints: less p4
+Attempt 7 · p3 voted No; complaints: less p4
+Attempt 7 · p4 voted No; complaints: less p1
+Attempt 7 · p5 voted No; complaints: more p5
+Attempt 7 · p6 voted Yes
+Attempt 7 · p7 voted Yes
+Attempt 7 · p0 voted No; complaints: less p3
+Attempt 7 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 7 · Proposal rejected (1 of 8).
+Attempt 7 · p2 proposed p0, p1, p2, p3, p6.
+Attempt 7 · Player pledges: p0: 8 Blue; p1: 2 Blue; p2: 13 Blue; p3: 5 Blue; p6: 3 Blue
+Attempt 7 · p2 voted Yes
+Attempt 7 · p3 voted No; complaints: less p1
+Attempt 7 · p4 voted No; complaints: less p1
+Attempt 7 · p5 voted No; complaints: more p5
+Attempt 7 · p6 voted Yes
+Attempt 7 · p7 voted Yes
+Attempt 7 · p0 voted Yes
+Attempt 7 · p1 voted Yes
+Attempt 7 · OFFICIAL VOTE REVENUE: everyone receives 1 token, pass or fail.
+Attempt 7 · Proposal approved with 5 Yes votes.
+Attempt 7 · OFFICIAL RESULT (approved crew): 28 Blue; Blue wins the mission.
+Attempt 7 · Player reports: p0 claims p0 gave 9 Blue; p0 claims p3 gave 0 Blue; p0 claims p3 gave 0 Red; p1 claims p1 gave 2 Blue; p2 claims p2 gave 13 Blue; p3 claims p3 gave 0 Blue; p6 claims p6 gave 4 Blue
+OFFICIAL: Blue wins the game.
+
+Mission 5 | Attempt 7 | game_over | Chairman p2 | Blue 4 – Red 1
+Pot: 28 Blue / 25; crew size 5
+Wallets: p0 Abby: 0 | p1 Ben: 7 | p2 Casey: 10 | p3 Drew: 11 | p4 Ellis: 19 | p5 Fran: 25 | p6 Gray: 0 | p7 Harper: 6
+PRIVATE (p0): Blue. Win if Blue wins four missions and on at least 2 approved attempts your original contribution exactly matched your pledge in all three colors and totaled at least 2 tokens. Two attempts on the same mission count. Later modifications do not matter.
+Kept qualifying pledges: 2 / 2. Your entire history counts, including before receiving this card.
+After each approved attempt's public result and before reports, optionally inspect any crew member (including yourself). Privately learn their exact original paid Blue/Red/Green deposit, excluding bonuses, theft, and recoloring. You may inspect while off crew. No audit on penalty attempts.
+Official allegiance badges: p5: Red
+PRIVATE RESULT · Attempt 1: p1 originally paid 4 Blue.
+PRIVATE RESULT · Attempt 2: p2 originally paid 2 Blue.
+PRIVATE RESULT · Attempt 3: p3 originally paid 17 Red.
+PRIVATE RESULT · Attempt 4: p7 originally paid 17 Blue.
+PRIVATE RESULT · Attempt 5: p6 originally paid 10 Blue.
+PRIVATE RESULT · Attempt 6: p1 originally paid 2 Blue.
+PRIVATE RESULT · Attempt 7: p3 originally paid 0 tokens.
+Your original deposit on attempt 7: 9 Blue.
+Your result: WON; final wallet 0.
+Your team won and your personal condition was satisfied. You won.
+
+Your private action history:
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:0:p0", "revision": 0, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:1:p0", "revision": 1, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:7:p0", "revision": 7, "action": {"type": "vote", "approve": false, "complaints": [{"modifier": "less", "player_id": "p5"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:12:p0", "revision": 12, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:13:p0", "revision": 13, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:18:p0", "revision": 18, "action": {"type": "vote", "approve": false, "complaints": [{"modifier": "more", "player_id": "p2", "color": "blue"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:24:p0", "revision": 24, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:25:p0", "revision": 25, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:29:p0", "revision": 29, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:36:p0", "revision": 36, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:37:p0", "revision": 37, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:38:p0", "revision": 38, "action": {"type": "select_crew", "crew": ["p0", "p6"]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:39:p0", "revision": 39, "action": {"type": "pledge", "tokens": {"blue": 8, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:40:p0", "revision": 40, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:48:p0", "revision": 48, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:49:p0", "revision": 49, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:59:p0", "revision": 59, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:60:p0", "revision": 60, "action": {"type": "contribute", "tokens": {"blue": 0, "red": 0, "green": 0}, "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:61:p0", "revision": 61, "action": {"type": "audit", "ability": {"target": "p1"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:63:p0", "revision": 63, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:64:p0", "revision": 64, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:73:p0", "revision": 73, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:75:p0", "revision": 75, "action": {"type": "contribute", "tokens": {"blue": 0, "red": 0, "green": 0}, "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:76:p0", "revision": 76, "action": {"type": "audit", "ability": {"target": "p2"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:78:p0", "revision": 78, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:79:p0", "revision": 79, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:87:p0", "revision": 87, "action": {"type": "vote", "approve": false, "complaints": [{"modifier": "less", "player_id": "p3"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:90:p0", "revision": 90, "action": {"type": "contribute", "tokens": {"blue": 0, "red": 0, "green": 0}, "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:91:p0", "revision": 91, "action": {"type": "audit", "ability": {"target": "p3"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:93:p0", "revision": 93, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:94:p0", "revision": 94, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:96:p0", "revision": 96, "action": {"type": "pledge", "tokens": {"blue": 15, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:101:p0", "revision": 101, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:105:p0", "revision": 105, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:106:p0", "revision": 106, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:112:p0", "revision": 112, "action": {"type": "vote", "approve": false, "complaints": [{"modifier": "less", "player_id": "p5"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:117:p0", "revision": 117, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:118:p0", "revision": 118, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:120:p0", "revision": 120, "action": {"type": "pledge", "tokens": {"blue": 12, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:123:p0", "revision": 123, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:129:p0", "revision": 129, "action": {"type": "contribute", "tokens": {"blue": 12, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:130:p0", "revision": 130, "action": {"type": "audit", "ability": {"target": "p7"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:131:p0", "revision": 131, "action": {"type": "report", "statements": [{"player_id": "p0", "verb": "gave", "quantity": 12, "color": "blue"}, {"player_id": "p7", "verb": "gave", "quantity": 17, "color": "blue"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:132:p0", "revision": 132, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:133:p0", "revision": 133, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:137:p0", "revision": 137, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:144:p0", "revision": 144, "action": {"type": "contribute", "tokens": {"blue": 0, "red": 0, "green": 0}, "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:145:p0", "revision": 145, "action": {"type": "audit", "ability": {"target": "p6"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:147:p0", "revision": 147, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:148:p0", "revision": 148, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:149:p0", "revision": 149, "action": {"type": "select_crew", "crew": ["p0", "p1", "p6"]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:150:p0", "revision": 150, "action": {"type": "pledge", "tokens": {"blue": 4, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:151:p0", "revision": 151, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:159:p0", "revision": 159, "action": {"type": "contribute", "tokens": {"blue": 4, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:160:p0", "revision": 160, "action": {"type": "audit", "ability": {"target": "p1"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:161:p0", "revision": 161, "action": {"type": "report", "statements": [{"player_id": "p0", "verb": "gave", "quantity": 4, "color": "blue"}, {"player_id": "p1", "verb": "gave", "quantity": 2, "color": "blue"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:162:p0", "revision": 162, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:163:p0", "revision": 163, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:165:p0", "revision": 165, "action": {"type": "pledge", "tokens": {"blue": 7, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:173:p0", "revision": 173, "action": {"type": "vote", "approve": false, "complaints": [{"modifier": "less", "player_id": "p3"}]}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:174:p0", "revision": 174, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:175:p0", "revision": 175, "action": {"type": "prepare", "ability": null}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:177:p0", "revision": 177, "action": {"type": "pledge", "tokens": {"blue": 8, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:184:p0", "revision": 184, "action": {"type": "vote", "approve": true, "complaints": []}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:186:p0", "revision": 186, "action": {"type": "contribute", "tokens": {"blue": 9, "red": 0, "green": 0}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:187:p0", "revision": 187, "action": {"type": "audit", "ability": {"target": "p3"}}}
+{"player_id": "p0", "request_id": "762f3d41-fa75-4549-8c96-531cf3c021cc:188:p0", "revision": 188, "action": {"type": "report", "statements": [{"player_id": "p0", "verb": "gave", "quantity": 9, "color": "blue"}, {"player_id": "p3", "verb": "gave", "quantity": 0, "color": "blue"}, {"player_id": "p3", "verb": "gave", "quantity": 0, "color": "red"}]}}

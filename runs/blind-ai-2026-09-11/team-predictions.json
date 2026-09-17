@@ -1,0 +1,314 @@
+[
+  {
+    "mission": 1,
+    "revision": 102,
+    "history_event_id": 105,
+    "observation_sha256": "a5013b5783bb45215077a67f063ad69c1e9c1d92d3a687f232071063107741c9",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.92,
+        "evidence": "Both resolutions strongly support substantial Blue payments: eight tokens initially and six subsequently, accounting for my known Red deposit and recoloring. Inclusion-driven voting leaves some objective-related uncertainty."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public badge confirms Blue."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.34,
+        "evidence": "Repeatedly blocks proposals when excluded, and p6 consistently objects to p3's inclusion. Blue pledges are untested; a personal participation objective could explain much of this behavior without Red allegiance."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.79,
+        "evidence": "Consistently approves Blue-pledged proposals and selects confirmed-Blue p2. Wallet gain and conservative pledge suggest possible wealth incentives, but do not establish allegiance."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.88,
+        "evidence": "Second resolution's wallet loss and pot increase strongly support an eight-Blue payment that secured Blue's mission. Earlier inclusion demands plausibly reflect a personal objective."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.82,
+        "evidence": "Pledges Blue and generally approves Blue funding, including the successful closing proposal. Opposition is concentrated on p3 rather than broadly obstructing missions; no paid contribution yet tests these signals."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.25,
+        "evidence": "Rejects every proposal, including substantial Blue pledges, making persistent obstruction the strongest Red signal among unconfirmed seats. 'More blue' complaints and possible personal goals keep this uncertain."
+      }
+    ],
+    "summary": "Confirmed p0 Red and p2 Blue. Actual mission funding most strongly favors p1 and p5 as Blue; p3 and p7 are the leading remaining Red candidates, but objective-driven voting is a significant confounder. Marginals sum to five Blue players.",
+    "position": 252,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  },
+  {
+    "mission": 2,
+    "revision": 117,
+    "history_event_id": 121,
+    "observation_sha256": "c7d7aebace1980c347cabd7c640f14994ef00487b9a14ba6c26be46599996364",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.97,
+        "evidence": "Three resolutions consistently support Blue payments. The first two strongly corroborate substantial Blue funding after accounting for my known Red deposits and recoloring."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public badge confirms Blue allegiance."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.69,
+        "evidence": "Voting mostly demands personal inclusion, which could reflect an objective rather than Red allegiance. No paid contribution tests the Blue pledges. Moves toward Blue because p6 now supplies much stronger evidence for a remaining Red seat."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.88,
+        "evidence": "Consistently approves Blue-pledged proposals and selected confirmed-Blue p2. Wealth accumulation and limited spending leave personal incentives and allegiance incompletely tested."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.95,
+        "evidence": "Mission-one accounting strongly supports an eight-Blue payment securing Blue's point. The latest result also fits the reported two-Blue payment. Inclusion-driven voting is less informative than this funding."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.06,
+        "evidence": "Latest wallet loss is 16. The final pot is exactly explained by p6 paying 16 Red, my eight Red and recoloring, and p1/p5 paying four Blue. This sharply contradicts p6's Blue report; hidden effects or temporary objective-driven behavior prevent certainty."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.45,
+        "evidence": "Repeated earlier rejections and apparent nonpayment despite a 12-Blue pledge remain suspicious. However, conserving wealth or other personal goals could explain these choices, and strong Red evidence against p6 reduces the remaining Red probability available."
+      }
+    ],
+    "summary": "Confirmed p0 Red and p2 Blue. The major update is p6: official accounting strongly suggests a concealed 16-Red payment. Repeated Blue funding favors p1 and p5; p3, p4 and p7 remain less directly tested. Marginals sum to five Blue players.",
+    "position": 303,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  },
+  {
+    "mission": 3,
+    "revision": 234,
+    "history_event_id": 239,
+    "observation_sha256": "608fba44cb0fac20b852765caf7b3a9506da25e7b84b7e82673389345c6c0012",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.99,
+        "evidence": "Repeated wallet losses and pot changes support Blue payments, especially on crews with me or p5. Inclusion-focused voting is less informative than this consistent funding."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public badge confirms Blue allegiance."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.94,
+        "evidence": "Blue pledges remain untested by payment, and voting largely demands personal inclusion. Strong Red-funding evidence against p6 and p7 makes p3 substantially more likely Blue under the fixed team count."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.95,
+        "evidence": "Consistently approves Blue-pledged proposals and previously selected confirmed-Blue p2. Wealth accumulation does not establish allegiance; the team count and stronger Red evidence elsewhere favor Blue."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.98,
+        "evidence": "Repeated payments alongside p1 closely match Blue pot growth after accounting for my recoloring, including funding Blue's first mission victory. Participation and saving preferences explain some otherwise obstructive choices."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.06,
+        "evidence": "Attempt 3's accounting strongly supports a concealed 16-Red payment despite reporting Blue: my known eight Red and recoloring explain the rest alongside p1/p5's apparent Blue payments. Personal goals and hidden effects prevent certainty."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.08,
+        "evidence": "Latest resolution added seven Blue and twenty Red while p1 spent three and p7 spent twenty-four. My recoloring accounts for only one added Red; substantial remaining Red funding is strongly attributable to p7 despite the Blue report. Earlier obstruction reinforces this, though allegiance is not certified by behavior."
+      }
+    ],
+    "summary": "Most likely Red trio is p0, p6 and p7. The latest mission supplies strong new Red-funding evidence against p7, shifting the untested p3 and p4 toward Blue. Only p0 and p2 are confirmed; hidden effects and personal objectives retain some uncertainty. Blue marginals sum to five.",
+    "position": 600,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  },
+  {
+    "mission": 4,
+    "revision": 348,
+    "history_event_id": 354,
+    "observation_sha256": "1fee5d0780b627bc12124e9066f409445a87e1f13c601bf7e33ff47f65862cf4",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.99,
+        "evidence": "Repeated resolutions strongly support Blue payments. Attempt 8 added eight Blue and nineteen Red, exactly matching p1 paying nine Blue alongside my known eighteen Red and Blue-to-Red recoloring."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public allegiance badge confirms Blue."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.94,
+        "evidence": "Payments remain untested, but inclusion-focused voting can reflect a personal objective. Recently opposed my inclusion. Stronger Red-funding evidence against p6 and p7 leaves p3 likely Blue under the fixed team count."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.94,
+        "evidence": "Consistently approves Blue-pledged proposals and has selected confirmed-Blue p2. Wealth retention is not team evidence; the strongest support is the team count combined with Red evidence elsewhere."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.97,
+        "evidence": "Repeated spending alongside p1 closely matches Blue pot growth after my recoloring, including Blue's mission-one victory. Recent objections to p6 and p7 also fit Blue, though approving my latest proposal shows voting is imperfect."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.08,
+        "evidence": "Attempt 3 strongly supports a concealed sixteen-Red payment despite reporting Blue. Attempt 7 instead suggests mostly Blue funding, modestly increasing uncertainty, but that does not erase the earlier substantial Red payment."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.08,
+        "evidence": "Attempt 6 added twenty Red with p7 spending twenty-four and p1 only three; my recoloring explains just one added Red. This strongly implicates p7 in substantial Red funding despite the Blue report. Blue-oriented complaints alone do not outweigh it."
+      }
+    ],
+    "summary": "The most likely Red trio remains p0, p6 and p7. Attempt 8 further corroborates p1's Blue funding; p6's mixed funding warrants some uncertainty about allegiance versus personal incentives. Only p0 and p2 are confirmed. Blue probabilities sum to 5.00.",
+    "position": 879,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  },
+  {
+    "mission": 5,
+    "revision": 423,
+    "history_event_id": 430,
+    "observation_sha256": "6a9e3d05f9e8ea0b71c539ab1e8bd999318188a64b851f98959c40a97bd49598",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.99,
+        "evidence": "Repeated official results closely corroborate Blue payments, including crews with my known Red deposits. Latest seven-token spending also fits the overwhelmingly Blue pot."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public badge confirms Blue allegiance."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.78,
+        "evidence": "Still has no resolved paid contribution to test Blue pledges. Inclusion-focused voting may reflect a personal objective, but rejecting the latest successful Blue crew leaves uncertainty. The fixed team count remains the main reason to favor Blue."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.97,
+        "evidence": "Latest 39-token wallet loss and overwhelmingly Blue result strongly support substantial Blue funding. Earlier Blue-oriented approvals and recent objections to my inclusion reinforce this."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.98,
+        "evidence": "Repeated spending closely matches Blue pot growth, now including 21 tokens on the latest successful crew. Inclusion demands and wallet retention are plausibly personal-objective behavior."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.18,
+        "evidence": "Attempt 3 strongly implicated p6 in sixteen Red despite a Blue report. However, attempt 7 suggested mostly Blue funding, and the latest fifteen-token spending fits an almost entirely Blue pot. These repeated mixed signals increase uncertainty about allegiance versus personal incentives."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.1,
+        "evidence": "Attempt 6's substantial Red increase remains strongly attributable to p7's spending after accounting for my recoloring and p1's small payment. Repeated obstruction reinforces suspicion, though Blue-oriented complaints and hidden effects prevent certainty."
+      }
+    ],
+    "summary": "The leading Red trio remains p0, p6 and p7, but p6's repeated Blue funding weakens confidence in that assignment. The latest result strengthens p4's Blue estimate; p3 remains the least-tested alternative Red candidate. Only p0 and p2 are confirmed. Marginals sum to 5.00.",
+    "position": 1080,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  },
+  {
+    "mission": 6,
+    "revision": 450,
+    "history_event_id": 457,
+    "observation_sha256": "7a14c2dad6c1f61bca1a25b345fe302378caae77d8a919c8796146efda8d09b1",
+    "estimates": [
+      {
+        "player_id": "p0",
+        "p_blue": 0,
+        "evidence": "Own private card confirms Red allegiance; terminal result confirms the Red Loyalist objective was satisfied."
+      },
+      {
+        "player_id": "p1",
+        "p_blue": 0.99,
+        "evidence": "Repeated resolutions closely corroborate Blue payments alongside my known Red deposits. The final two Blue tokens also fit p1 paying three Blue followed by my recoloring."
+      },
+      {
+        "player_id": "p2",
+        "p_blue": 1,
+        "evidence": "Official public allegiance badge confirms Blue."
+      },
+      {
+        "player_id": "p3",
+        "p_blue": 0.86,
+        "evidence": "No resolved payment tests the Blue pledges. Inclusion-focused voting is ambiguous and may reflect a personal objective. Stronger Red evidence against p7, together with the fixed team count, increases p3's Blue probability."
+      },
+      {
+        "player_id": "p4",
+        "p_blue": 0.97,
+        "evidence": "Mission five's 39-token wallet loss and overwhelmingly Blue pot strongly support substantial Blue funding. Earlier Blue-oriented approvals and objections to my inclusion reinforce this."
+      },
+      {
+        "player_id": "p5",
+        "p_blue": 0.98,
+        "evidence": "Repeated spending closely matches Blue pot growth, including Blue victories on missions one and five. Inclusion demands and saving behavior do not outweigh the funding evidence."
+      },
+      {
+        "player_id": "p6",
+        "p_blue": 0.18,
+        "evidence": "Attempt three strongly supports a concealed sixteen-Red payment, but later results support substantial Blue funding. Red remains more likely, with meaningful uncertainty about personal incentives and hidden effects."
+      },
+      {
+        "player_id": "p7",
+        "p_blue": 0.02,
+        "evidence": "The final crew spent three tokens from p1 and twenty-two from p7, producing two Blue and twenty-four Red. My recoloring explains only one Red token. This strongly reinforces earlier evidence of substantial concealed Red funding by p7, now securing Red's fourth mission."
+      }
+    ],
+    "summary": "Most likely Red trio: p0, p6 and p7. The final mission sharply strengthens the case against p7; p6 remains the main uncertainty because of mixed funding. Only p0 and p2 have confirmed allegiances. Blue marginals sum to 5.00.",
+    "position": 1152,
+    "player_id": "p0",
+    "model": "gpt-6-astra"
+  }
+]

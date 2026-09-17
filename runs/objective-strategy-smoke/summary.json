@@ -1,0 +1,93 @@
+{
+  "rules_version": "0.1-objectives-dev.2",
+  "rules_versions": [
+    "0.1-objectives-dev.2"
+  ],
+  "policy_version": "social.5",
+  "policy_versions": [
+    "social.5"
+  ],
+  "games": 100,
+  "completed": 100,
+  "unresolved": 0,
+  "failed": 0,
+  "team_wins": {
+    "blue": 77,
+    "red": 23
+  },
+  "win_rate_among_completed": {
+    "blue": 0.77,
+    "red": 0.23
+  },
+  "attempts_per_game": {
+    "mean": 7.14,
+    "min": 3,
+    "max": 13
+  },
+  "attempts_per_completed_mission": 1.6879432624113475,
+  "rejected_proposals": 1451,
+  "penalty_attempts": 58,
+  "individual_winners": 425,
+  "by_objective": {
+    "close_race": {
+      "holders": 65,
+      "individual_wins": 18,
+      "condition_satisfied": 18
+    },
+    "contrarian": {
+      "holders": 62,
+      "individual_wins": 35,
+      "condition_satisfied": 35
+    },
+    "exact_change": {
+      "holders": 64,
+      "individual_wins": 21,
+      "condition_satisfied": 28
+    },
+    "loyalist": {
+      "holders": 327,
+      "individual_wins": 202,
+      "condition_satisfied": 327
+    },
+    "opposition_patron": {
+      "holders": 58,
+      "individual_wins": 27,
+      "condition_satisfied": 51
+    },
+    "passenger": {
+      "holders": 50,
+      "individual_wins": 22,
+      "condition_satisfied": 29
+    },
+    "reliable_partner": {
+      "holders": 52,
+      "individual_wins": 34,
+      "condition_satisfied": 47
+    },
+    "saver": {
+      "holders": 62,
+      "individual_wins": 31,
+      "condition_satisfied": 54
+    },
+    "spendthrift": {
+      "holders": 60,
+      "individual_wins": 35,
+      "condition_satisfied": 44
+    }
+  },
+  "by_initial_blue_count": {
+    "5": {
+      "games": 68,
+      "blue_wins": 48,
+      "red_wins": 20,
+      "unresolved": 0
+    },
+    "6": {
+      "games": 32,
+      "blue_wins": 29,
+      "red_wins": 3,
+      "unresolved": 0
+    }
+  },
+  "interpretation": "Scripted-policy diagnostic. Policy versions identify the opponents; results do not establish balance or human-level difficulty."
+}

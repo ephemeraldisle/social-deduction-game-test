@@ -1,0 +1,314 @@
+[
+  {
+    "player": "p1",
+    "attempt": 1,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 0,
+        "red": 11,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.0,
+      "public_blue_support": 0.0,
+      "future_weight": 1.0,
+      "cover_value": 5.2083525381756335,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.7,
+      "continuation_value": 4.508352538175634
+    },
+    "outcomes": {
+      "blue": 0.6820178199545947,
+      "red": 0.016224047827721168,
+      "incomplete": 0.30175813221768416,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999998
+    }
+  },
+  {
+    "player": "p5",
+    "attempt": 1,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 0,
+        "red": 11,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.0,
+      "public_blue_support": 0.0,
+      "future_weight": 1.0,
+      "cover_value": 5.219835959523204,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.7000000000000002,
+      "continuation_value": 4.519835959523204
+    },
+    "outcomes": {
+      "blue": 0.6860082801381271,
+      "red": 0.01580508055958856,
+      "incomplete": 0.2981866393022839,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999996
+    }
+  },
+  {
+    "player": "p6",
+    "attempt": 1,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 0,
+        "red": 10,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.0,
+      "public_blue_support": 0.0,
+      "future_weight": 1.0,
+      "cover_value": 5.1884690498863,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.7,
+      "continuation_value": 4.488469049886297
+    },
+    "outcomes": {
+      "blue": 0.6465442300397714,
+      "red": 0.018554559838692773,
+      "incomplete": 0.3349012101215356,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999999
+    }
+  },
+  {
+    "player": "p1",
+    "attempt": 5,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 0,
+        "red": 2,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.7272727272727273,
+      "public_blue_support": 0.06060606060606061,
+      "future_weight": 0.5,
+      "cover_value": 0.73656141607502,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.3499999999999999,
+      "continuation_value": 0.38656141607502087
+    },
+    "outcomes": {
+      "blue": 0.0,
+      "red": 0.0,
+      "incomplete": 1.0000000000000002,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 1.0000000000000002
+    }
+  },
+  {
+    "player": "p5",
+    "attempt": 5,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 4,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 4,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.7272727272727273,
+      "public_blue_support": 0.06060606060606061,
+      "future_weight": 0.5,
+      "cover_value": 0.7209903475465884,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.6999999999999997,
+      "continuation_value": 0.020990347546588923
+    },
+    "outcomes": {
+      "blue": 0.0,
+      "red": 0.0,
+      "incomplete": 0.9999999999999992,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999992
+    }
+  },
+  {
+    "player": "p1",
+    "attempt": 6,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 7,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 0,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.7272727272727273,
+      "public_blue_support": 1.9865319865319864,
+      "future_weight": 0.5,
+      "cover_value": 0.0,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.0,
+      "continuation_value": 0.0
+    },
+    "outcomes": {
+      "blue": 0.9968336274465709,
+      "red": 0.0,
+      "incomplete": 0.0031663725534291135,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999999
+    }
+  },
+  {
+    "player": "p5",
+    "attempt": 6,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.7272727272727273,
+      "public_blue_support": 1.9865319865319864,
+      "future_weight": 0.5,
+      "cover_value": 0.34392299372129465,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.34999999999999987,
+      "continuation_value": -0.00607700627870548
+    },
+    "outcomes": {
+      "blue": 0.9999999999999999,
+      "red": 0.0,
+      "incomplete": 0.0,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999999
+    }
+  },
+  {
+    "player": "p6",
+    "attempt": 6,
+    "old": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 10,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "new": {
+      "type": "contribute",
+      "tokens": {
+        "blue": 2,
+        "red": 0,
+        "green": 0
+      },
+      "ability": null
+    },
+    "red_strategy": {
+      "public_exposure": 0.7,
+      "public_blue_support": 0.06060606060606061,
+      "future_weight": 0.5,
+      "cover_value": 0.7748811441278026,
+      "exposure_cost": 0.0,
+      "reserve_cost": 0.3499999999999997,
+      "continuation_value": 0.4248811441278031
+    },
+    "outcomes": {
+      "blue": 0.9999999999999999,
+      "red": 0.0,
+      "incomplete": 0.0,
+      "personal_win": 0.0,
+      "personal_loss": 0.0,
+      "continues": 0.9999999999999999
+    }
+  }
+]

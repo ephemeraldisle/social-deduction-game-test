@@ -1,0 +1,90 @@
+{
+  "rules_version": "0.1-objectives-dev.1",
+  "rules_versions": [
+    "0.1-objectives-dev.1"
+  ],
+  "policy_version": "random-legal.1",
+  "games": 100,
+  "completed": 100,
+  "unresolved": 0,
+  "failed": 0,
+  "team_wins": {
+    "blue": 62,
+    "red": 38
+  },
+  "win_rate_among_completed": {
+    "blue": 0.62,
+    "red": 0.38
+  },
+  "attempts_per_game": {
+    "mean": 7.83,
+    "min": 4,
+    "max": 13
+  },
+  "attempts_per_completed_mission": 1.9097560975609755,
+  "rejected_proposals": 189,
+  "penalty_attempts": 0,
+  "individual_winners": 243,
+  "by_objective": {
+    "close_race": {
+      "holders": 65,
+      "individual_wins": 6,
+      "condition_satisfied": 6
+    },
+    "contrarian": {
+      "holders": 62,
+      "individual_wins": 32,
+      "condition_satisfied": 32
+    },
+    "exact_change": {
+      "holders": 64,
+      "individual_wins": 0,
+      "condition_satisfied": 1
+    },
+    "loyalist": {
+      "holders": 327,
+      "individual_wins": 185,
+      "condition_satisfied": 327
+    },
+    "opposition_patron": {
+      "holders": 58,
+      "individual_wins": 11,
+      "condition_satisfied": 27
+    },
+    "passenger": {
+      "holders": 50,
+      "individual_wins": 5,
+      "condition_satisfied": 8
+    },
+    "reliable_partner": {
+      "holders": 52,
+      "individual_wins": 0,
+      "condition_satisfied": 0
+    },
+    "saver": {
+      "holders": 62,
+      "individual_wins": 3,
+      "condition_satisfied": 6
+    },
+    "spendthrift": {
+      "holders": 60,
+      "individual_wins": 1,
+      "condition_satisfied": 6
+    }
+  },
+  "by_initial_blue_count": {
+    "5": {
+      "games": 68,
+      "blue_wins": 42,
+      "red_wins": 26,
+      "unresolved": 0
+    },
+    "6": {
+      "games": 32,
+      "blue_wins": 20,
+      "red_wins": 12,
+      "unresolved": 0
+    }
+  },
+  "interpretation": "Rules smoke diagnostic with random legal actions; bots ignore objectives. No evidence of balance or opponent quality."
+}

@@ -1,0 +1,15 @@
+{
+  "name": "social",
+  "version": "social.1",
+  "settings": {
+    "funding_weight": 2.0,
+    "ownership_weight": 3.0,
+    "objective_weight": 5.0,
+    "terminal_weight": 100.0,
+    "inclusion_weight": 2.0,
+    "report_weight": 0.3,
+    "association_weight": 0.2,
+    "protest_threshold": 0.75,
+    "protest_relax_at": 5
+  }
+}

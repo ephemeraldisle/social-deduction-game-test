@@ -1,0 +1,96 @@
+{
+  "rules_version": "0.1-abilities-dev.1",
+  "rules_versions": [
+    "0.1-abilities-dev.1"
+  ],
+  "policy_version": "social.9",
+  "policy_versions": [
+    "social.9"
+  ],
+  "games": 10,
+  "completed": 10,
+  "unresolved": 0,
+  "failed": 0,
+  "team_wins": {
+    "blue": 6,
+    "red": 4
+  },
+  "win_rate_among_completed": {
+    "blue": 0.6,
+    "red": 0.4
+  },
+  "attempts_per_game": {
+    "mean": 6.6,
+    "min": 4,
+    "max": 11
+  },
+  "attempts_per_completed_mission": 1.5348837209302326,
+  "rejected_proposals": 152,
+  "penalty_attempts": 4,
+  "individual_winners": 35,
+  "by_objective": {
+    "close_race": {
+      "holders": 5,
+      "individual_wins": 0,
+      "condition_satisfied": 0
+    },
+    "exact_change": {
+      "holders": 9,
+      "individual_wins": 6,
+      "condition_satisfied": 6
+    },
+    "loyalist": {
+      "holders": 36,
+      "individual_wins": 22,
+      "condition_satisfied": 36
+    },
+    "opposition_patron": {
+      "holders": 4,
+      "individual_wins": 1,
+      "condition_satisfied": 4
+    },
+    "passenger": {
+      "holders": 8,
+      "individual_wins": 3,
+      "condition_satisfied": 5
+    },
+    "reliable_partner": {
+      "holders": 5,
+      "individual_wins": 1,
+      "condition_satisfied": 2
+    },
+    "saver": {
+      "holders": 6,
+      "individual_wins": 0,
+      "condition_satisfied": 4
+    },
+    "spendthrift": {
+      "holders": 7,
+      "individual_wins": 2,
+      "condition_satisfied": 5
+    }
+  },
+  "by_initial_blue_count": {
+    "5": {
+      "games": 10,
+      "blue_wins": 6,
+      "red_wins": 4,
+      "unresolved": 0
+    }
+  },
+  "by_contrarian": {
+    "absent": {
+      "games": 10,
+      "blue_wins": 6,
+      "red_wins": 4,
+      "unresolved": 0
+    },
+    "present": {
+      "games": 0,
+      "blue_wins": 0,
+      "red_wins": 0,
+      "unresolved": 0
+    }
+  },
+  "interpretation": "Scripted-policy diagnostic. Policy versions identify the opponents; results do not establish balance or human-level difficulty."
+}

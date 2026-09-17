@@ -1,0 +1,53 @@
+{
+  "action_replay_verified": true,
+  "game_state_unchanged_after_metadata": true,
+  "all_checkpoint_observation_digests_verified": true,
+  "prediction_accuracy": [
+    {
+      "mission": 1,
+      "correct": 8,
+      "of": 8,
+      "position": 252
+    },
+    {
+      "mission": 2,
+      "correct": 6,
+      "of": 8,
+      "position": 303
+    },
+    {
+      "mission": 3,
+      "correct": 6,
+      "of": 8,
+      "position": 600
+    },
+    {
+      "mission": 4,
+      "correct": 6,
+      "of": 8,
+      "position": 879
+    },
+    {
+      "mission": 5,
+      "correct": 6,
+      "of": 8,
+      "position": 1080
+    },
+    {
+      "mission": 6,
+      "correct": 6,
+      "of": 8,
+      "position": 1152
+    }
+  ],
+  "model_requests": 66,
+  "all_model_tools_disabled": true,
+  "all_model_observations_match_cli": true,
+  "no_prior_model_conversation": true,
+  "browser_checked": {
+    "final_prediction_table": true,
+    "actual_team_comparison": true,
+    "mission_1_button_position": 252,
+    "future_prediction_rows_hidden_at_mission_1": true
+  }
+}

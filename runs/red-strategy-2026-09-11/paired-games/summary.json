@@ -1,0 +1,14 @@
+{
+  "old_red": {
+    "games": 16,
+    "red_wins": 2,
+    "finished": 16,
+    "mean_opening_red_tokens": 1.25
+  },
+  "new_red": {
+    "games": 16,
+    "red_wins": 3,
+    "finished": 16,
+    "mean_opening_red_tokens": 0.0
+  }
+}

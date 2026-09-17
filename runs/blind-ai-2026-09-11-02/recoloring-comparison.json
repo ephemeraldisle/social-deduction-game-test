@@ -1,0 +1,81 @@
+{
+  "note": "Arithmetic comparison holding all paid deposits and other effects fixed; no adaptive counterfactual rollout.",
+  "agent_used_switcher": false,
+  "missions": [
+    {
+      "mission": 1,
+      "actual": {
+        "blue": 1,
+        "red": 32,
+        "green": 0
+      },
+      "without_recoloring": {
+        "blue": 0,
+        "red": 33,
+        "green": 0
+      },
+      "winner": "red",
+      "winner_unchanged": true
+    },
+    {
+      "mission": 2,
+      "actual": {
+        "blue": 38,
+        "red": 0,
+        "green": 0
+      },
+      "without_recoloring": {
+        "blue": 38,
+        "red": 0,
+        "green": 0
+      },
+      "winner": "blue",
+      "winner_unchanged": true
+    },
+    {
+      "mission": 3,
+      "actual": {
+        "blue": 24,
+        "red": 0,
+        "green": 0
+      },
+      "without_recoloring": {
+        "blue": 24,
+        "red": 0,
+        "green": 0
+      },
+      "winner": "blue",
+      "winner_unchanged": true
+    },
+    {
+      "mission": 4,
+      "actual": {
+        "blue": 55,
+        "red": 0,
+        "green": 0
+      },
+      "without_recoloring": {
+        "blue": 53,
+        "red": 2,
+        "green": 0
+      },
+      "winner": "blue",
+      "winner_unchanged": true
+    },
+    {
+      "mission": 5,
+      "actual": {
+        "blue": 27,
+        "red": 0,
+        "green": 0
+      },
+      "without_recoloring": {
+        "blue": 26,
+        "red": 1,
+        "green": 0
+      },
+      "winner": "blue",
+      "winner_unchanged": true
+    }
+  ]
+}
