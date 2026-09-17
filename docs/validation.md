@@ -779,3 +779,85 @@ UI improvements while retaining their recorded rules.
 - Chrome verification with Opposition Patron and Thief confirmed both compact
   summaries and the action panel are visible together. Each caret reveals its
   existing full explanation, including the permitted objective progress.
+
+## September 11, 2026 — aligned badges and stable replay perspectives
+
+- Official badges now use a colored check on the avatar, preserving the same
+  name and wallet alignment across players. Hover text retains the full team
+  and official-badge description.
+- Completed replays preserve the recorded moment when changing seats or
+  toggling Designer view. Shared positions map to each view's visible frame;
+  unfinished replays neither expose nor accept those positions.
+- **35 client tests and 16 web tests passed**, including different visible
+  frame counts, private-action boundaries, round trips between views, start/end
+  positions, invalid positions, and existing replay privacy restrictions.
+- Chrome verification confirmed aligned cards and a perspective/Designer-view
+  switch that stayed on the same vote. Both running servers were updated with
+  their existing save directories.
+
+## September 11, 2026 — confirmed allegiance and cheap Blue pledges (`social.11`)
+
+- Blue crew selection minimizes known Red seats before private-objective gains;
+  covert Red likewise avoids publicly exposed allies. Votes object to avoidable
+  known Red crew members, with exceptions for rejection pressure and a near-certain
+  personal win. Public vote forecasts distinguish badges from private inspections.
+- Blue pledges earn no allegiance or reliability credit. Unproven promises are
+  discounted by inferred cooperation, while verified kept promises earn trust.
+  Confirmed teams remain separate from uncertain payment behavior.
+- **11 focused allegiance tests passed**, including repeated claims, both sources
+  of team evidence, Close Race and Opposition Patron, forced crews, vote pressure,
+  cast ballots, verified payment evidence, and deterministic controller restoration.
+- **226 full-suite tests passed**, covering rules, abilities, sessions, replay,
+  controller behavior, persistence, and the local HTTP interface.
+- Reconstructed Drew's Opposition Patron proposal from saved table `08061740`:
+  the new controller replaces the officially Red member. Twelve representative
+  `social.9`/`social.10` decisions matched the pre-change implementation exactly,
+  including designer explanations and controller snapshots.
+- Stopped the leftover web server on port 8765. Restarted only 8766 with its
+  existing save directory and verified the current table still loads over HTTP.
+  New tables use `social.11`; saved tables retain their recorded controllers.
+
+## September 11, 2026 — editable mission ranges and unique abilities
+
+- New web and CLI tables read `configs/development_abilities.json`; web creation
+  rereads the file for every table, and `web --config` selects an alternate file.
+  The edited profile uses thresholds 15–30 and crew sizes 2–5. Saved sessions
+  continue to use their embedded settings, including after subsequent file edits.
+- Rules `0.1-abilities-dev.3` deal one copy of every ability with an independent
+  shuffle. Duplicate abilities are rejected by current-game invariants and snapshot
+  loading; earlier rules keep their original assignments and range validation.
+- **8 config/dealing tests passed**: live file edits, invalid-file rejection,
+  default and explicit CLI paths, larger missions with five-person crews, replay,
+  uniqueness over 80 seeds, deterministic deals, isolated random streams, and
+  preservation of old saves with duplicate abilities. **49 focused ability,
+  revenue, rules, and pacing tests passed** as well.
+- **235 full-suite tests passed**, including complete games, web transport,
+  controller restoration, and replay compatibility across the supported profiles.
+- Restarted the existing server on 8766 and checked the updated guide and old
+  table over HTTP. The existing table's full replay also verified unchanged.
+
+## September 11, 2026 — Red cover and reserves (`social.12`)
+
+- Red ability planning now prices public exposure and lost reserves during
+  continuing games. Helpful small Blue payments can build diminishing cover;
+  public Red badges remove that incentive. Terminal outcomes retain personal
+  win-condition scoring. Cover-pledge penalties are bounded independently of
+  actual pledge-dependent objectives. Blue and older policy behavior is preserved.
+- **65 focused tests and 248 full-suite tests passed**, including new checks for
+  concealed/exposed Red, terminal wins and defense, redundant spending, losing
+  cover pledges, wallet objectives, Close Race, public/private evidence separation,
+  and deterministic controller restoration.
+- Recomputed all **510 original `social.11` bot decisions** from the second blind
+  game: actions, explanations, and final controller snapshots matched exactly.
+  Both original blind-game replays still verify.
+- On the original opening observations, the three Red payments change from
+  11/11/10 Red to two Blue each. This comparison holds observations fixed; it
+  does not rewrite the original game or predict its complete counterfactual.
+- **32 paired bot games** (16 seeds, only Red upgraded) all finished and replayed
+  exactly. Red won **3/16 with the revision versus 2/16 before**: inconclusive for
+  strength. Revised Red spent no Red tokens in any opening attempt; caution and
+  predictability need further blind testing. Mean attempts rose from 9.25 to
+  10.56, and mean rejected proposals from 29.75 to 38.94. No weights were tuned
+  against these results. Artifacts: `runs/red-strategy-2026-09-11/`.
+- Restarted the existing server on 8765 with the same `runs` library. New games
+  use `social.12`; saved games retain their recorded controllers.

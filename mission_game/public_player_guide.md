@@ -1,7 +1,8 @@
 # Hidden Rules Mission Game — development table
 
 New development tables deal **private personal objectives and hidden abilities**.
-Contrarian is disabled in new tables. Read your own ability for its exact rules.
+Contrarian is disabled in new tables. Each ability is dealt once, without
+duplicates. Read your own ability for its exact rules.
 Older saves and explicitly selected comparison profiles retain their rules. Read your own card to learn your win condition. The common-rules
 comparison mode uses Loyalist objectives. Computer seats use scripted policies. Their decisions can be imperfect.
 Each computer player has access only to its own cards and the evidence visible
@@ -22,8 +23,8 @@ Each player starts with five uncolored wallet tokens. Wallet balances are public
 You choose a color when spending a token: Blue, Red, or Green, regardless of your
 team. You cannot spend more than your current wallet.
 
-A mission needs 8–12 total tokens and a crew of 2–4 distinct players, chosen
-independently. Its threshold and crew size stay fixed until completion. Blue and
+A mission's token threshold and number of distinct crew members are shown on
+its card and drawn independently. They stay fixed until completion. Blue and
 Red compete for ownership; Green only helps fund it. When the threshold is met,
 Blue wins ties with Red. An entirely Green pot stays open until at least one Blue
 or Red token remains. A completed mission awards one point. Surplus does not

@@ -16,4 +16,4 @@ mission-game = "mission_game.cli:main"
 include = ["mission_game*"]
 
 [tool.setuptools.package-data]
-mission_game = ["public_player_guide.md", "web/*.html", "web/*.css", "web/*.js"]
+mission_game = ["public_player_guide.md", "public_agent_contract.md", "web/*.html", "web/*.css", "web/*.js"]

@@ -1,7 +1,9 @@
 # Development protocol
 
 New web/CLI/session games use engine/observation schema `3`, rules
-`0.1-abilities-dev.2`, mode `development_abilities`. Contrarian is disabled.
+`0.1-abilities-dev.3`, mode `development_abilities`. Contrarian is disabled and
+new deals contain exactly one of each ability. Both earlier abilities versions
+remain readable with their original settings and assignments.
 The optional objectives-only profile uses schema `2`, rules `0.1-objectives-dev.4`;
 the all-Loyalist profile uses schema `1`, rules `0.1-common-rules-dev.3`.
 Existing `0.1-objectives-dev.3` snapshots remain readable with their original decks.
@@ -15,6 +17,11 @@ The server binds to IPv4 loopback only. Static routes serve three allowlisted
 assets; filesystem paths, authoritative snapshots, and seeds have no HTTP route.
 Requests are serialized by the local store, so concurrent tabs cannot apply
 conflicting actions at the same revision. Engine idempotency still applies.
+
+New tables load `configs/development_abilities.json` at creation, or the file
+selected with `web --config`. Changes apply to subsequent tables without a
+restart. Every saved session embeds its resolved config; loading or replaying a
+session never replaces it with the current file. Invalid configs reject creation.
 
 | Endpoint | Behavior |
 | --- | --- |
@@ -45,8 +52,14 @@ Ordinary replay responses contain `designer: null`.
 Player replay steps are emitted only when that seat's observation changes.
 Another player's unrevealed commitment adds no step, label, or count. The
 replay includes only actions already in the saved game; it cannot advance play.
-Selecting another perspective or enabling designer inspection starts at the
-beginning because those views can have different step boundaries.
+Completed-game responses include a shared `position` in the recorded action
+sequence. Switching perspective or toggling designer inspection requests that
+same `position` rather than a seat-specific `step`. The new view selects its
+latest visible frame at or before that moment and retains the requested position
+for subsequent switches. Frame numbers may differ between seats. The URL keeps
+the shared position so refresh restores the same moment. Position requests take
+precedence over `step`; they are rejected for unfinished games, whose responses
+never expose positions or hidden-action counts.
 
 The server verifies recorded actions against the saved final snapshot before
 serving a timeline. Replays are cached by file modification, size, seat, and
@@ -55,6 +68,24 @@ or modify the saved file. All new games and accepted decisions are persisted
 before their responses are returned.
 
 ## JSON-line transport
+
+Optional `agent --mission-checkpoints` adds
+`{"type":"mission_checkpoint","mission":1,"observation":{...}}` envelopes.
+They contain the same allowlisted seat observation as ordinary requests,
+captured after a completed mission's inspections/reports and before subsequent
+preparation decisions, including the terminal mission. No response is required
+for these notification envelopes; only ordinary `observation` requests accept
+actions. A runner can pause consuming later observations while recording a
+prediction. No seed or hidden action position is included. A resumed session
+does not synthesize missing checkpoints for earlier missions.
+
+Completed source-blind runs can attach optional `agent_predictions` to session
+schema 2. These are designer metadata, separate from engine events, containing
+mission, observer, model, observation revision/digest, recorded action position,
+per-player `p_blue` estimates/evidence, and a summary. Ordinary observations and
+replays do not expose them. Designer replay includes only checkpoints at or
+before the requested position. Replay verifies game actions/results; it does
+not certify the agent's probability estimates.
 
 Start `python3 -m mission_game.cli agent --human-seat 0 --session runs/agent-game`.
 The trusted runner creates or restores the session. Its `human_id` binds the
@@ -263,10 +294,10 @@ cross-Python-version replay guarantee is made by this development release.
 
 ## Scripted controllers
 
-New sessions default to `social.10`; the CLI also supports `--policy straightforward`
+New sessions default to `social.12`; the CLI also supports `--policy straightforward`
 (`straightforward.3`) and `--policy random` (`random-legal.3`). The saved controller version selects the
 implementation on restore within a supported development rules version.
-Saved `social.7`, `social.8`, and `social.9` controllers use their previous algorithm within
+Saved `social.7`, `social.8`, `social.9`, `social.10`, and `social.11` controllers use their previous algorithm within
 supported rules profiles; other unknown rules versions are rejected.
 Unknown controller versions are rejected. Engine/observation schema numbers
 are 1 and 2 for abilities-off profiles and 3 for the abilities profile.

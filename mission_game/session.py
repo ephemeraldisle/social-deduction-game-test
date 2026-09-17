@@ -39,6 +39,7 @@ class Session:
         self.human_id = f"p{human_seat}" if human_seat is not None else None
         self.session_version = 2
         self.bot_decisions = []  # Designer-only explanations, separate from engine events.
+        self.agent_predictions = []  # Designer-only, externally recorded mission checkpoints.
         self.policies = {f"p{i}": make_policy(policy, seed, i, policy_settings) for i in range(8) if f"p{i}" != self.human_id}
 
     def step_bot(self):
@@ -74,6 +75,8 @@ class Session:
                 "human_id": self.human_id, "policies": {pid: policy.snapshot() for pid, policy in self.policies.items()}}
         if self.session_version >= 2:
             data["bot_decisions"] = deepcopy(self.bot_decisions)
+            if self.agent_predictions:
+                data["agent_predictions"] = deepcopy(self.agent_predictions)
         return data
 
     def save(self, path):
@@ -87,6 +90,7 @@ class Session:
         session = cls.__new__(cls)
         session.session_version = data["session_version"]
         session.bot_decisions = data["bot_decisions"] if session.session_version >= 2 else []
+        session.agent_predictions = data.get("agent_predictions", [])
         session.initial = data["initial"]
         session.game = Game.from_snapshot(data["game"])
         session.human_id = data["human_id"]

@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 from .engine import ActionError
+from .config import GameConfig, DEFAULT_CONFIG_PATH
 from .policy import make_policy
 from .replay import ReplayTimeline, frame_label
 from .session import Session
@@ -25,10 +26,11 @@ class WebError(ValueError):
 class TableStore:
     """One trusted local library; paths and full snapshots stay server-side."""
 
-    def __init__(self, root, policy="social", policy_settings=None):
+    def __init__(self, root, policy="social", policy_settings=None, config_path=None):
         make_policy(policy, settings=policy_settings)  # Validate before creating a table.
         self.policy = policy
         self.policy_settings = policy_settings
+        self.config_path = Path(config_path or DEFAULT_CONFIG_PATH).resolve()
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
@@ -78,7 +80,9 @@ class TableStore:
     def create(self, seat=0, demo=False, paced=False):
         if type(seat) is not int or not 0 <= seat <= 7:
             raise WebError(400, "Choose a seat from 0 to 7")
-        session = Session(secrets.randbits(128), human_seat=None if demo else seat,
+        # Read for each new table; saved sessions restore their embedded config.
+        config = GameConfig.load(self.config_path)
+        session = Session(secrets.randbits(128), config=config, human_seat=None if demo else seat,
                           policy=self.policy, policy_settings=self.policy_settings)
         path = self.root / "web" / session.game.game_id / "session.json"
         session.save(path)
@@ -148,7 +152,7 @@ class TableStore:
             self.advance(session, path)
         return {"acceptance": accepted, **self.view(session, path, previous)}
 
-    def replay(self, game_id, step=0, seat=None, designer=False):
+    def replay(self, game_id, step=0, seat=None, designer=False, position=None):
         session, path = self.load(game_id)
         finished = session.game.phase == Phase.GAME_OVER
         bound_seat = session.human_id or "p0"
@@ -156,7 +160,7 @@ class TableStore:
             seat = bound_seat
         if seat not in [f"p{i}" for i in range(8)]:
             raise WebError(400, "Unknown viewing seat")
-        if not finished and (designer or seat != bound_seat):
+        if not finished and (designer or seat != bound_seat or position is not None):
             raise WebError(403, "Hidden information stays private until the game is finished")
         stamp = path.stat()
         key = (game_id, stamp.st_mtime_ns, stamp.st_size, seat, designer)
@@ -166,13 +170,18 @@ class TableStore:
                 self.replays.popitem(last=False)
         replay = self.replays[key]
         self.replays.move_to_end(key)
-        result = replay.at(len(replay.frames) - 1 if step == -1 else step)
+        result = (replay.at_position(position) if position is not None
+                  else replay.at(len(replay.frames) - 1 if step == -1 else step))
+        if finished:
+            # Keep the requested moment even if this seat's last visible change
+            # happened earlier. Switching back can then restore the exact frame.
+            result["position"] = position if position is not None else replay.positions[result["step"]]
         return {**result, "game": self.summary(session, path), "can_inspect": finished,
                 "viewing_seat": seat, "designer_enabled": designer}
 
 
-def make_server(root="runs", port=8765, policy="social", policy_settings=None):
-    store = TableStore(root, policy, policy_settings)
+def make_server(root="runs", port=8765, policy="social", policy_settings=None, config_path=None):
+    store = TableStore(root, policy, policy_settings, config_path)
     token = secrets.token_urlsafe(32)
     assets = {"/": ("index.html", "text/html; charset=utf-8"),
               "/app.js": ("app.js", "text/javascript; charset=utf-8"),
@@ -255,13 +264,14 @@ def make_server(root="runs", port=8765, policy="social", policy_settings=None):
                         return self.respond(200, store.state(game_id))
                     if not mutate and operation == "replay":
                         query = parse_qs(parsed.query)
-                        if set(query) - {"step", "seat", "designer"}:
+                        if set(query) - {"step", "seat", "designer", "position"}:
                             raise WebError(400, "Unknown replay option")
                         designer = query.get("designer", ["false"])[0]
                         if designer not in ("true", "false"):
                             raise WebError(400, "Choose a player or designer view")
                         return self.respond(200, store.replay(game_id, int(query.get("step", [0])[0]),
-                                                            query.get("seat", [None])[0], designer == "true"))
+                                                            query.get("seat", [None])[0], designer == "true",
+                                                            int(query["position"][0]) if "position" in query else None))
                     raise WebError(404, "This operation could not be found")
             except ActionError as exc:
                 self.respond(409 if exc.code in ("stale_request", "conflicting_retry") else 400,
@@ -279,8 +289,8 @@ def make_server(root="runs", port=8765, policy="social", policy_settings=None):
     return server
 
 
-def serve(root="runs", port=8765, policy="social", policy_settings=None):
-    server = make_server(root, port, policy, policy_settings)
+def serve(root="runs", port=8765, policy="social", policy_settings=None, config_path=None):
+    server = make_server(root, port, policy, policy_settings, config_path)
     print(f"Hidden Rules table: http://127.0.0.1:{server.server_port}", flush=True)
     print("Games save automatically. Press Ctrl+C to stop the local server.", flush=True)
     try:

@@ -341,8 +341,7 @@ function playersHTML(observation) {
       const pledge = p.pledges[player.id];
       const vote = votes[player.id];
       return `<article class="player-card ${chosen ? "selected" : ""} ${player.id === nextVoter ? "current" : ""}"><button class="player-main" data-command="player-history" data-id="${player.id}" aria-expanded="${state.playerHistory === player.id}" aria-label="${esc(player.name)}${chairman ? ", chairman" : ""}, ${player.wallet} tokens. Show action history">
-        <div class="player-identity"><span class="avatar ${chairman ? "chair-mark" : revealedTeam || (mine ? "you" : "")}" ${chairman ? 'role="img" title="Chairman" aria-label="Chairman"' : 'aria-hidden="true"'}>${chairman ? "♜" : esc(player.name.slice(0, 1))}</span><span class="player-name">${esc(player.name)}${mine ? " · You" : ""}</span></div>
-        ${revealedTeam ? `<span class="player-team-badge ${revealedTeam}">${title(revealedTeam)}${p.public_badges?.[player.id] ? " · Official badge" : " team"}</span>` : ""}
+        <div class="player-identity"><span class="player-avatar"><span class="avatar ${chairman ? "chair-mark" : revealedTeam || (mine ? "you" : "")}" ${chairman ? 'role="img" title="Chairman" aria-label="Chairman"' : 'aria-hidden="true"'}>${chairman ? "♜" : esc(player.name.slice(0, 1))}</span>${revealedTeam ? `<span class="player-team-badge ${revealedTeam}" role="img" title="${title(revealedTeam)}${p.public_badges?.[player.id] ? " · Official badge" : " team"}" aria-label="${title(revealedTeam)}${p.public_badges?.[player.id] ? " · Official badge" : " team"}">${p.public_badges?.[player.id] ? "✓" : title(revealedTeam).slice(0,1)}</span>` : ""}</span><span class="player-name">${esc(player.name)}${mine ? " · You" : ""}</span></div>
         <div class="player-wallet"><span>Wallet</span><span class="wallet-number">${player.wallet} <span aria-hidden="true">◉</span>${walletChangeHTML(ledger.findLast(r => r.pid === player.id))}</span></div>
         <div class="player-foot">${pledge ? `<span title="Pledged ${esc(tokenText(pledge))}">${tokenMini(pledge)}</span>` : `<span>${chosen ? "On the crew" : "Off crew"}</span>`}${vote ? `<span class="${vote.approve ? "vote-yes" : "vote-no"}">${vote.approve ? "Yes ✓" : "No ×"}</span>` : chosen ? '<span class="crew-check" aria-label="Selected">✓</span>' : ""}</div>
         ${vote && !vote.approve && vote.complaints?.length ? `<p class="player-complaint"><span>Reason for No</span>${esc(complaintText(vote.complaints[0], player.id))}</p>` : ""}
@@ -567,6 +566,24 @@ function socialInsightsHTML(details) {
     <details><summary>Evidence behind these estimates</summary>${beliefs.map(([pid, b]) => `<p><b>${esc(nameOf(pid))}</b></p>${b.evidence?.length ? `<ul>${b.evidence.map(e => `<li>Event ${esc(e.event_id)}: ${esc(e.text)}</li>`).join("")}</ul>` : '<p class="caption">No individual evidence yet; using starting assumptions.</p>'}`).join("")}</details></div>`;
 }
 
+function agentPredictionsHTML(predictions = [], revealedPlayers = []) {
+  if (!predictions.length) return "";
+  const players = state.observation.public.players;
+  const percent = p => `${Math.round(p * 100)}%`;
+  const rows = predictions.map(prediction => {
+    const estimates = Object.fromEntries(prediction.estimates.map(e => [e.player_id, e]));
+    return `<tr><th scope="row"><button class="button small" data-command="replay-prediction" data-position="${esc(prediction.position)}">Mission ${esc(prediction.mission)}</button></th>${players.map(player => {
+      const estimate = estimates[player.id];
+      if (!estimate) return '<td>—</td>';
+      const p = estimate.p_blue;
+      return `<td class="prediction-${p > 0.5 ? "blue" : p < 0.5 ? "red" : "unknown"}" title="${esc(`${player.name}: ${percent(p)} Blue, ${percent(1 - p)} Red. ${estimate.evidence}`)}">${esc(percent(p))}</td>`;
+    }).join("")}</tr>`;
+  }).join("");
+  const teams = Object.fromEntries(revealedPlayers.map(p => [p.id, p.team]));
+  const truth = revealedPlayers.length ? `<tfoot><tr><th scope="row">Actual team</th>${players.map(p => `<td>${esc(title(teams[p.id] || "unknown"))}</td>`).join("")}</tr></tfoot>` : "";
+  return `<section class="agent-predictions" aria-label="AI team predictions"><h3>AI team predictions</h3><p class="caption">${esc(nameOf(predictions[0].player_id))}'s probability of <b>Blue</b> after each mission. Red is the remaining probability. Recorded from evidence available at that checkpoint, before later observations or designer reveals. Estimates are not calibrated.</p><div class="belief-scroll"><table class="belief-table prediction-table"><thead><tr><th scope="col">Checkpoint</th>${players.map(p => `<th scope="col">${esc(p.name)}</th>`).join("")}</tr></thead><tbody>${rows}</tbody>${truth}</table></div>${predictions.map(p => `<details><summary>Mission ${esc(p.mission)} · Evidence and changes</summary><p>${esc(p.summary)}</p><ul>${p.estimates.map(e => `<li><b>${esc(nameOf(e.player_id))} · ${esc(percent(e.p_blue))} Blue:</b> ${esc(e.evidence)}</li>`).join("")}</ul></details>`).join("")}</section>`;
+}
+
 function designerHTML(designer) {
   if (!designer) return "";
   const resolution = designer.last_resolution;
@@ -579,7 +596,7 @@ function designerHTML(designer) {
     return [baseDescription(action), extra].filter(Boolean).join(" · ");
   };
   const effectText = effect => effect.type === "echo" ? `created 1 ${title(effect.color)}` : effect.type === "thief" ? effect.source === "wallet" ? `took ${effect.amount} from ${nameOf(effect.target)}’s wallet` : `took ${tokenText(effect.tokens)} from mission` : `${effect.changed ? "changed 1" : "no token available:"} ${title(effect.from)} → ${title(effect.to)}`;
-  return `<section class="designer-panel"><span class="eyebrow">DESIGNER ONLY</span><h3>Behind the result</h3>${last ? `<p class="inspection-note">Last action: <b>${esc(nameOf(last.player_id))}</b> · ${title(last.action.type)} · ${esc(description(last.action))}</p>` : '<p class="inspection-note">Roles have been dealt. No actions yet.</p>'}
+  return `<section class="designer-panel"><span class="eyebrow">DESIGNER ONLY</span>${agentPredictionsHTML(designer.agent_predictions, designer.players)}<h3>Behind the result</h3>${last ? `<p class="inspection-note">Last action: <b>${esc(nameOf(last.player_id))}</b> · ${title(last.action.type)} · ${esc(description(last.action))}</p>` : '<p class="inspection-note">Roles have been dealt. No actions yet.</p>'}
     ${decision ? `<div class="bot-explanation"><span class="eyebrow">WHY THIS BOT ACTED · ${esc(decision.policy_version)}</span><p>${esc(decision.reason)}</p>${socialInsightsHTML(decision.details)}<details><summary>Forecast and policy limits</summary><pre>${esc(JSON.stringify(decision.details, null, 2))}</pre><ul>${decision.limitations.map(note => `<li>${esc(note)}</li>`).join("")}</ul></details><p class="caption">Saved at the decision. Forecasts are estimates; replay verifies actions and results.</p></div>` : last ? '<p class="inspection-note">No saved bot explanation for this decision.</p>' : ""}
     <h3 style="margin-top:15px">Private cards</h3>${designer.players.map(player => `<div class="inspection-row"><strong>${esc(nameOf(player.id))}</strong><span>${esc(title(player.objective))} · ${esc(title(player.ability || "disabled"))}${player.ability_used ? " (used)" : ""}${player.result ? ` · ${player.result.won ? "Won" : "Did not win"}` : ""}</span></div>`).join("")}
     ${Object.keys(designer.sealed_submissions).length ? `<h3 style="margin-top:15px">Currently sealed</h3>${Object.entries(designer.sealed_submissions).map(([pid, action]) => `<div class="inspection-row"><strong>${esc(nameOf(pid))}</strong><span>${esc(description(action))}</span></div>`).join("")}` : ""}
@@ -704,9 +721,9 @@ async function loadRoute() {
   }
 }
 
-async function seek(step, seat = state.replay.viewing_seat, designer = state.replay.designer_enabled) {
+async function seek(step, seat = state.replay.viewing_seat, designer = state.replay.designer_enabled, position = null) {
   const generation = ++state.generation, id = state.game.id;
-  const params = new URLSearchParams({step, seat, designer});
+  const params = new URLSearchParams({...(position != null ? {position} : {step}), seat, designer});
   try {
     const data = await api(`/api/games/${encodeURIComponent(id)}/replay?${params}`);
     if (generation !== state.generation) return;
@@ -744,6 +761,9 @@ async function command(button) {
       return;
     }
     stopPlayback();
+    if (cmd === "replay-prediction") {
+      await seek(state.replay.step, state.replay.viewing_seat, true, Number(button.dataset.position)); return;
+    }
     const target = {"replay-first": 0, "replay-back": state.replay.step - 1, "replay-next": state.replay.step + 1, "replay-last": state.replay.total_steps - 1, "replay-step": Number(button.dataset.step)}[cmd];
     await seek(target); return;
   }
@@ -818,8 +838,8 @@ document.addEventListener("change", event => {
   }
   if (event.target.id === "history-filter") { state.historyFilter = event.target.value; $("#history-area").innerHTML = historyHTML(state.observation); }
   if (event.target.id === "replay-scrubber") { stopPlayback(); seek(Number(event.target.value)); }
-  if (event.target.id === "replay-seat") { stopPlayback(); seek(0, event.target.value, state.replay.designer_enabled); }
-  if (event.target.id === "designer-toggle") { stopPlayback(); seek(0, state.replay.viewing_seat, event.target.checked); }
+  if (event.target.id === "replay-seat") { stopPlayback(); seek(state.replay.step, event.target.value, state.replay.designer_enabled, state.replay.position); }
+  if (event.target.id === "designer-toggle") { stopPlayback(); seek(state.replay.step, state.replay.viewing_seat, event.target.checked, state.replay.position); }
 });
 document.addEventListener("toggle", event => {
   if (event.target.dataset?.privateDetail && event.target.isConnected) state.privateDetailsOpen[event.target.dataset.privateDetail] = event.target.open;

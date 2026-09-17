@@ -11,7 +11,8 @@ Existing supported saves retain their original rules and cards.
 
 New tables pay **every player 1 token after each full vote**, pass or fail,
 in addition to continuing-attempt income. The first team to **four missions**
-wins; Close Race requires a **4–3** finish. These rules use `0.1-abilities-dev.2`.
+wins; Close Race requires a **4–3** finish. New deals use `0.1-abilities-dev.3`
+and include exactly one of each of the eight abilities.
 Start a new table to play with them.
 
 ## Run it
@@ -25,6 +26,11 @@ python3 -m mission_game.cli web
 
 Open **http://127.0.0.1:8765**. No JavaScript build step, npm install, or external
 services are needed. Leave the Python server running while using the page.
+
+New tables read `configs/development_abilities.json` when created. It currently
+sets mission thresholds to **15–30** and crew sizes to **2–5**. Edit those ranges
+and create a new table; no server restart is needed. Existing tables keep their
+saved settings. Use `web --config path/to/settings.json` to select another file.
 
 - **Take a seat** creates a game against seven Social computer players.
 - Enter your preferred **Seconds / step** (decimals allowed; zero for manual),
@@ -52,6 +58,8 @@ services are needed. Leave the Python server running while using the page.
   like, then use **Resume table** from the game library.
 - **Review so far** opens a read-only replay without advancing the live game.
   Step backward/forward, scrub to a point, click a decision, or play the timeline.
+  In completed games, changing perspective or Designer view keeps the same
+  recorded moment even when the views have different frame numbers.
   Left/Right arrow keys also step when a form control isn't focused.
 - Finished games allow switching viewing seats. **Designer view**, explicitly
   enabled, reveals teams, objectives, personal outcomes, sealed actions, and
@@ -147,6 +155,31 @@ does not isolate participants from files they can read on the same computer.
 
 ## JSON participant
 
+For a source-blind AI playtest with saved team predictions, use the tool-free
+model runner (requires an OpenAI API key in `OPENAI_API_KEY`):
+
+```bash
+python3 -m mission_game.blind_runner --out runs/blind-ai
+```
+
+It plays one seat through the CLI against seven Social bots. Model requests
+contain only public participant documentation, that seat's observations, and
+its own notes; tools are disabled and no repository, seed, saved state, or
+previous conversation is sent. `--model` selects the model (default
+`gpt-6-astra`); `--human-seat` selects the seat. For an existing JSON credential
+file containing `OPENAI_API_KEY`, use `--api-key-file path/to/auth.json`.
+An optional `--seed` fixes the deal through the trusted CLI; the seed is never
+included in model requests.
+The output directory must be new.
+
+After each completed mission's closing inspections and reports, the model
+records all eight team probabilities before receiving subsequent play.
+The completed replay's **Designer view → AI team predictions** shows these
+checkpoints and their evidence; click a mission to seek to that moment. Earlier
+replay frames do not show later predictions. The run also saves `review.md`,
+`team-predictions.json`, model input/output logs, and the original CLI save.
+The original action log is verified before designer metadata is attached.
+
 ```bash
 python3 -m mission_game.cli agent --human-seat 0 --session runs/agent-game
 ```
@@ -171,7 +204,7 @@ game. See the [protocol](docs/protocol.md) for every action shape and retry rule
   drawn from six Loyalists and one of each other active type (13 cards total).
   Contrarian remains supported in older saves and explicit abilities-off scenarios.
 - All eight abilities: Thief, Stowaway, Auditor, Switcher, Standard Bearer, Scout,
-  Recolorer, and Echo. Independently seeded assignments allow duplicates. Private
+  Recolorer, and Echo. A separately seeded shuffle deals each ability once. Private
   preparation, sealed hidden actions, ordered resolution, closing audits, use
   counters, truthful receipts, and objective swaps work in play and replay.
 - Crew selection, affordable sealed pledges, all eight clockwise votes,
@@ -226,9 +259,18 @@ These are uncalibrated heuristics with short-horizon objective scoring; they
 do not establish human-level difficulty. Both earlier policies remain available.
 
 The objective and ability mechanics in **milestone 2** are implemented. The default
-`social.10` bots plan their own modifying abilities alongside deposits, crew choices,
+`social.12` bots plan their own modifying abilities alongside deposits, crew choices,
 and votes, including final wallets and original-payment objective credit. They
 choose useful inspection targets and retain badge/scouting/audit evidence.
+Confirmed teams remain influential despite contrary claims. Blue bots avoid
+recruiting known Red players, and covert Red bots avoid publicly exposed allies.
+Blue pledges earn no allegiance or trust credit; verified kept promises improve
+payment forecasts. Votes account for public badges as well as private goals.
+Red bots also weigh public cover and reserves for later missions. They can make
+small Blue payments early, avoid redundant Red spending, and abandon cover for
+a decisive result. A Blue cover pledge does not force an expensive donation
+to a lost mission. These continuation values are heuristic, not a guarantee of
+stronger play or calibrated opponent beliefs.
 Repeated effects after independently verified crew payments can become tentative
 forecast scenarios. Public pot/wallet discrepancies alone cannot certify spending
 or lies. Arbitrary rule discovery and balance need further playtesting.
@@ -242,11 +284,13 @@ benchmark-isolation service. It checks request origins and uses a per-server
 token for mutations. Designer mode intentionally exposes finished-game secrets.
 
 Objective predicates and private progress live in `mission_game/objectives.py`.
-The default session/CLI profile is `configs/development_abilities.json`.
+New web and CLI games load `configs/development_abilities.json` by default.
 Use `--config configs/development_objectives.json` for an abilities-off comparison,
 or `--config configs/development_common_rules.json` for all-Loyalist practice.
 The low-level `GameConfig()` retains the objectives-only profile; use
-`GameConfig.abilities()` to construct the full rules explicitly.
+`GameConfig.abilities()` to construct the full rules explicitly. Direct Python
+`Session()` calls use those built-in settings; pass `GameConfig.load(path)` to
+use an editable file there too.
 Simulation summaries include per-objective holders, personal conditions, and
 individual wins; these files contain designer information.
 

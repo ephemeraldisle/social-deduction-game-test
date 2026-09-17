@@ -173,7 +173,7 @@ def make_policy(name, seed=0, seat=0, settings=None):
 
 def restore_policy(data):
     from .social_policy import SocialPolicy
-    if data["version"] in (SocialPolicy.version, "social.9"):
+    if data["version"] in (SocialPolicy.version, "social.9", "social.10", "social.11"):
         return SocialPolicy.from_snapshot(data)
     if data["version"] in ("social.7", "social.8"):
         from .social_baseline import SocialPolicy as PreviousSocialPolicy

@@ -55,12 +55,24 @@ class AdapterTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = io.StringIO()
             with patch("sys.stdin", io.StringIO("".join(inputs))), patch("sys.stdout", output):
-                json_loop(actual, Path(directory) / "session.json")
+                json_loop(actual, Path(directory) / "session.json", mission_checkpoints=True)
             self.assertEqual(actual.game.snapshot(), expected.game.snapshot())
             messages = [json.loads(line) for line in output.getvalue().splitlines()]
             self.assertEqual(messages[0]["type"], "instructions")
             self.assertEqual(messages[-1]["observation"]["phase"], "game_over")
             self.assertFalse(any(message["type"] == "error" for message in messages))
+            checkpoints = [m for m in messages if m["type"] == "mission_checkpoint"]
+            self.assertEqual([m["mission"] for m in checkpoints],
+                             list(range(1, len(actual.game.completed_missions) + 1)))
+            for checkpoint in checkpoints:
+                view = checkpoint["observation"]
+                self.assertEqual(view["viewer"], "p0")
+                self.assertNotIn(view["phase"], ("audit", "report"))
+                self.assertTrue(view["phase"] == "game_over" or
+                                view["public"]["mission"]["number"] == checkpoint["mission"] + 1)
+                self.assertFalse(any("team" in p for p in view["public"]["players"]))
+                self.assertNotIn("seed", view)
+            self.assertEqual(messages[-2]["type"], "mission_checkpoint")
 
     def test_json_errors_do_not_accept_an_actor_override(self):
         session = Session(7, human_seat=0)

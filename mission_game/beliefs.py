@@ -135,6 +135,12 @@ class SocialBeliefs:
             self.note(speaker, event, f"Objected to {target} with supporting contribution or pledge evidence; no suspicion added merely for accusing.")
         return True
 
+    def pledge_evidence(self, pid, vector, event):
+        competitive = vector["blue"] + vector["red"]
+        if competitive:
+            self.side(pid, vector["blue"] / competitive, .35)
+            self.note(pid, event, f"Pledged {vector['blue']} Blue and {vector['red']} Red; a weak preference signal.")
+
     def observe(self, observation, memory, report_weight=.2, association_weight=.2, accusation_weight=.8):
         self.abilities_enabled = observation["public"]["rules"].get("abilities_enabled", False)
         if self.prior is None:
@@ -167,10 +173,7 @@ class SocialBeliefs:
             elif kind == "pledges_revealed":
                 self.pledges = deepcopy(event["pledges"])
                 for pid, vector in self.pledges.items():
-                    competitive = vector["blue"] + vector["red"]
-                    if competitive:
-                        self.side(pid, vector["blue"] / competitive, .35)
-                        self.note(pid, event, f"Pledged {vector['blue']} Blue and {vector['red']} Red; a weak preference signal.")
+                    self.pledge_evidence(pid, vector, event)
             elif kind == "vote":
                 pid = event["player_id"]
                 accusing = self.accusation(event, accusation_weight, memory.viewer)
@@ -326,3 +329,27 @@ class SocialBeliefs:
             raise ValueError("Unsupported social belief snapshot")
         model.__dict__.update(deepcopy(data))
         return model
+
+
+class AllegianceBeliefs(SocialBeliefs):
+    """Keep verified teams distinct from uncertain cooperation (social.11)."""
+
+    def pledge_evidence(self, pid, vector, event):
+        if vector["red"]:
+            # Openly promising Red is a costly public signal; promising Blue
+            # is the normal cover story for either side and earns no trust.
+            self.side(pid, 0., .35 * vector["red"] / (vector["blue"] + vector["red"]))
+            self.note(pid, event, "Publicly pledged Red; weak evidence of Red support, not verified payment or allegiance.")
+        elif vector["blue"]:
+            self.note(pid, event, "Pledged Blue; a funding claim, not evidence of Blue allegiance or a kept promise.")
+
+    def estimate(self, pid, direct=False):
+        estimate = super().estimate(pid, direct)
+        team = self.known_teams.get(pid)
+        if team is not None:
+            behavior = estimate["blue_preference"]
+            # A team fact cannot be washed away by repeated claims. It still
+            # does not certify a payment: objectives can reward off-color play.
+            estimate.update(known_team=team, behavioral_blue_preference=behavior,
+                            blue_preference=.75 * (team == "blue") + .25 * behavior)
+        return estimate

@@ -1,14 +1,16 @@
 > September 11 update: New games enable all eight abilities and exclude Contrarian.
 > New defaults pay everyone after each full vote and require four mission wins.
-> The default `social.10` policy jointly plans payments and abilities, values private
-> inspections, and retains cautious hypotheses about recurring observed effects.
-> Existing `social.7`/`social.8`/`social.9` saves keep their previous decision algorithm.
+> The default `social.12` policy jointly plans payments and abilities, uses confirmed
+> allegiances in crew choices, and gives Blue pledges no allegiance or trust credit.
+> It values private inspections and retains tentative hypotheses about recurring effects.
+> Red players also price public exposure and spending that reduces future reserves.
+> Existing `social.7`/`social.8`/`social.9`/`social.10`/`social.11` saves keep their previous decision algorithm.
 > The detailed abilities-off accounting model below remains a comparison baseline.
 > See [ability behavior and limitations](abilities.md) for the active extension.
 
 # Scripted computer players
 
-`social.7` is the default for new games. It uses per-seat evidence, personality,
+The historical `social.7` baseline uses per-seat evidence, personality,
 vote forecasts, and the holder's private objective to choose actions. The
 `straightforward.2` and `random-legal.2` policies remain available as
 baselines. Old development saves are not migrated across rules updates.
@@ -22,7 +24,8 @@ Each Social bot draws three stable traits from a separate seeded stream:
   after five rejections or a forecast game-ending result. Higher values also
   reduce the cost assigned to breaking a pledge.
 - **Risk caution:** discounts a risky plan according to its possible downside.
-  There is no blanket penalty for spending or bonus for retaining tokens.
+  This trait does not set a spending penalty. In the current abilities profile,
+  Red continuation planning separately values reserves for later missions.
 - **Skepticism:** how strongly it discounts promises and unverified reports.
 
 Traits are independent of allegiance and objective. A demanding player is not
@@ -171,6 +174,32 @@ exactly one complaint, and Yes votes have none. No Social bot requests More Red
 or Less Blue. Those remain legal options for human players.
 
 ## Concealment and accusations
+
+In `social.12` abilities games, Red contribution plans include a continuation
+value as well as the immediate mission and personal-objective values. A small
+Blue payment can build cover when the public result also looks helpful. This
+benefit diminishes after previous helpful funding. Large Red payments on a
+Red-heavy result carry an exposure cost, and spending has an opportunity cost
+while missions remain. Thus bots can decline an uncertain early sabotage,
+retain cash, or let others fund a point that is already secured.
+
+The public-cover estimate uses only public mission totals, wallet changes,
+crew membership, and badges. Own receipts and private inspections do not become
+assumptions about what opponents know. Wallet changes have an allowance for
+hidden effects, and the estimate is a heuristic rather than proof of allegiance.
+Unverified Blue reports and pledges do not rebuild cover. A public Red badge
+eliminates the value of maintaining Blue cover.
+
+The continuation weights diminish as either side approaches victory. They are
+zero for terminal outcomes, which still use the bot's personal win condition.
+The ordinary cost of breaking a cover pledge is bounded for these Red bots and
+shrinks with public exposure; it cannot force them to empty their wallet into a
+Blue mission merely to honor a lie. Reliable Partner and other actual objective
+conditions retain their separate scoring. Designer metadata records the
+`red_strategy` breakdown: cover value, exposure cost, reserve cost, and the
+public evidence context. These values are not calibrated probabilities or a
+model of an optimal opponent. Blue policy behavior and saved older policies
+are unchanged by this continuation layer.
 
 Bots seeking a Red win or pursuing a temporary Red goal use Blue cover promises.
 This includes Blue Close Race while it needs Red to reach two points, and Blue

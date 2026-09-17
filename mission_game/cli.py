@@ -10,7 +10,7 @@ from importlib.resources import files
 from pathlib import Path
 from statistics import mean
 
-from .config import GameConfig
+from .config import GameConfig, DEFAULT_CONFIG_PATH
 from .engine import ActionError
 from .policy import POLICY_NAMES, POLICY_VERSION, make_policy
 from .session import Session, write_json
@@ -54,7 +54,7 @@ def human_loop(session, path):
         print(f"\nSaved. Resume with: python3 -m mission_game.cli resume {path}")
 
 
-def json_loop(session, path):
+def json_loop(session, path, mission_checkpoints=False):
     """Seat binding comes from the trusted session, never from input payloads."""
     if session.human_id is None:
         raise ValueError("The JSON adapter requires a session with an external seat")
@@ -62,11 +62,28 @@ def json_loop(session, path):
     def emit(data):
         print(json.dumps(data, allow_nan=False), flush=True)
 
+    checkpointed = session.game.mission.number - 1
+
+    def checkpoint():
+        nonlocal checkpointed
+        if not mission_checkpoints:
+            return
+        completed = len(session.game.completed_missions)
+        # Wait for closing inspections/reports. Capture this boundary before
+        # any subsequent preparation or proposal, including terminal missions.
+        if completed > checkpointed and (session.game.phase == Phase.GAME_OVER
+                                        or session.game.mission.number > completed):
+            checkpointed = completed
+            emit({"type": "mission_checkpoint", "mission": completed,
+                  "observation": session.game.observe(session.human_id)})
+
     emit({"type": "instructions", "text": guide()})
     session.save(path)
     while True:
+        checkpoint()
         while session.step_bot():
             session.save(path)
+            checkpoint()
         observation = session.game.observe(session.human_id)
         emit({"type": "observation", "observation": observation})
         if session.game.phase == Phase.GAME_OVER:
@@ -138,7 +155,7 @@ def summarize(records):
 
 
 def simulate(args):
-    config = GameConfig.load(args.config) if args.config else GameConfig.abilities()
+    config = GameConfig.load(args.config or DEFAULT_CONFIG_PATH)
     settings = json.loads(Path(args.policy_config).read_text()) if args.policy_config else None
     controller = make_policy(args.policy, settings=settings)
     output = Path(args.out)
@@ -187,6 +204,9 @@ def main(argv=None):
         if command != "simulate":
             sub.add_argument("--human-seat", type=int, choices=range(8), default=0)
             sub.add_argument("--session", help="Private session JSON file or directory")
+            if command == "agent":
+                sub.add_argument("--mission-checkpoints", action="store_true",
+                                 help="Emit seat observations after each mission's closing reports")
         else:
             sub.add_argument("--games", type=int, default=100)
             sub.add_argument("--out", default="runs/smoke")
@@ -203,6 +223,7 @@ def main(argv=None):
     web = commands.add_parser("web", help="Open a local web table and replay library")
     web.add_argument("--port", type=int, default=8765)
     web.add_argument("--runs-dir", default="runs", help="Local saved-game library")
+    web.add_argument("--config", help="Game configuration reloaded for every new table (default: configs/development_abilities.json)")
     web.add_argument("--policy", choices=POLICY_NAMES, default="social")
     web.add_argument("--policy-config", help="JSON settings for new social-policy tables")
     args = parser.parse_args(argv)
@@ -212,7 +233,7 @@ def main(argv=None):
             if not 0 <= args.port <= 65535:
                 raise ValueError("--port must be between 0 and 65535")
             settings = json.loads(Path(args.policy_config).read_text()) if args.policy_config else None
-            serve(args.runs_dir, args.port, args.policy, settings)
+            serve(args.runs_dir, args.port, args.policy, settings, args.config)
         elif args.command == "guide":
             print(guide())
         elif args.command == "simulate":
@@ -247,13 +268,13 @@ def main(argv=None):
                     raise ValueError("Session already exists; use resume or choose a new path")
                 session = Session.load(path)
             else:
-                config = GameConfig.load(args.config) if args.config else GameConfig.abilities()
+                config = GameConfig.load(args.config or DEFAULT_CONFIG_PATH)
                 settings = json.loads(Path(args.policy_config).read_text()) if args.policy_config else None
                 session = Session(args.seed if args.seed is not None else secrets.randbits(128), config, args.human_seat,
                                   policy=args.policy, policy_settings=settings)
                 path = path or Path("runs") / session.game.game_id / "session.json"
             if args.command == "agent":
-                json_loop(session, path)
+                json_loop(session, path, mission_checkpoints=args.mission_checkpoints)
             else:
                 human_loop(session, path)
     except (ValueError, OSError, KeyError, TypeError) as exc:

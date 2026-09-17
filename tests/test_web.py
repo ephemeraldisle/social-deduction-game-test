@@ -6,6 +6,8 @@ import unittest
 from pathlib import Path
 
 from mission_game import ActionError
+from mission_game.config import GameConfig
+from mission_game.engine import Game
 from mission_game.policy import RandomLegalPolicy
 from mission_game.replay import ReplayTimeline
 from mission_game.server import TableStore, WebError, make_server
@@ -86,6 +88,10 @@ class WebStoreTests(unittest.TestCase):
         self.assertEqual(ordinary["viewing_seat"], "p4")
         self.assertIsNone(ordinary["designer"])
         self.assertFalse(ordinary["can_inspect"])
+        self.assertNotIn("position", ordinary)
+        with self.assertRaises(WebError) as error:
+            self.store.replay(game["id"], position=0)
+        self.assertEqual(error.exception.status, 403)
         for seat, designer in (("p1", False), ("p4", True)):
             with self.assertRaises(WebError) as error:
                 self.store.replay(game["id"], seat=seat, designer=designer)
@@ -102,6 +108,35 @@ class WebStoreTests(unittest.TestCase):
         self.assertEqual([p["team"] for p in designer["designer"]["players"]], [p.team for p in session.game.players])
         self.assertNotIn("mission_rng", designer["designer"])
         self.assertGreaterEqual(designer["total_steps"], ordinary["total_steps"])
+
+    def test_replay_perspectives_preserve_the_same_moment_and_round_trip(self):
+        session = Session(42, config=GameConfig(crew_min=2, crew_max=2, max_attempts=1),
+                          game_id="perspectives", policy="random")
+        proposal(session.game)
+        submit(session.game, "p0", {"type": "contribute", "tokens": tokens(blue=1)})
+        sealed_position = len(session.game.action_log)
+        session.run()
+        self.saved(session)
+        for position in (0, sealed_position, len(session.game.action_log)):
+            expected = Game.from_snapshot(session.initial)
+            for record in session.game.action_log[:position]:
+                expected.submit(**record)
+            own = self.store.replay("perspectives", seat="p0", position=position)
+            other = self.store.replay("perspectives", seat="p7", position=own["position"])
+            inspector = self.store.replay("perspectives", seat="p7", designer=True, position=other["position"])
+            restored = self.store.replay("perspectives", seat="p0", position=inspector["position"])
+            for result in (own, other, inspector, restored):
+                self.assertEqual(result["position"], position)
+                self.assertEqual(result["observation"], expected.observe(result["viewing_seat"]))
+            self.assertEqual(own["step"], restored["step"])
+            if position == sealed_position:
+                self.assertNotEqual(own["step"], other["step"])
+                self.assertEqual(inspector["designer"]["last_action"], session.game.action_log[position - 1])
+                by_step = self.store.replay("perspectives", step=own["step"], seat="p0")
+                self.assertEqual(by_step["position"], position)
+        for invalid in (-1, len(session.game.action_log) + 1, True, 1.5):
+            with self.assertRaises(ValueError):
+                self.store.replay("perspectives", position=invalid)
 
     def test_replay_does_not_mutate_saved_game_or_bot_streams(self):
         session = Session(25, game_id="unchanged")
@@ -195,7 +230,21 @@ class WebHTTPTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(state["observation"]["viewer"], "p3")
         self.assertEqual(self.request(f"/api/games/{game_id}/replay?designer=true")[0], 403)
+        self.assertEqual(self.request(f"/api/games/{game_id}/replay?position=0")[0], 403)
         self.assertEqual(self.request(f"/api/games/{game_id}/resume", {}, headers)[0], 200)
+
+    def test_completed_replay_accepts_a_shared_position(self):
+        session = Session(42, config=GameConfig(max_attempts=1), policy="random", game_id="http-position")
+        session.run()
+        session.save(Path(self.directory.name) / "http-position" / "session.json")
+        position = len(session.game.action_log) // 2
+        path = f"/api/games/http-position/replay?position={position}&seat=p3&designer=true"
+        status, result = self.request(path)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["position"], position)
+        self.assertEqual(result["designer"]["last_action"], session.game.action_log[position - 1])
+        self.assertEqual(self.request("/api/games/http-position/replay?position=-1")[0], 400)
+        self.assertEqual(self.request("/api/games/http-position/replay?position=bad")[0], 400)
 
     def test_filesystem_and_snapshots_are_not_served(self):
         for path in ("/../README.md", "/runs/session.json", "/mission_game/engine.py", "/api/games/unknown/snapshot"):

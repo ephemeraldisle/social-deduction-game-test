@@ -4,7 +4,7 @@ from copy import deepcopy
 from dataclasses import asdict
 from uuid import uuid4
 
-from .config import GameConfig
+from .config import GameConfig, ABILITIES_VERSION
 from . import abilities, objectives
 from .rng import stream, tuple_tree
 from .types import COLORS, MAX_QUANTITY, Mission, ObjectiveCard, Phase, Player, Tokens, mission_winner
@@ -38,8 +38,13 @@ class Game:
             player.objective = card
         if self.config.abilities_enabled:
             ability_rng = stream(seed, "abilities")
-            for player in self.players:
-                player.ability = ability_rng.choice(abilities.KINDS)
+            if self.config.rules_version == ABILITIES_VERSION:
+                cards = list(abilities.KINDS)
+                ability_rng.shuffle(cards)
+            else:
+                cards = [ability_rng.choice(abilities.KINDS) for _ in self.players]
+            for player, card in zip(self.players, cards):
+                player.ability = card
         self.private_receipts = {p.id: [] for p in self.players}
         self.game_id = game_id or str(uuid4())  # Independent of the private seed.
         self.mission_rng = stream(seed, "missions")
@@ -426,6 +431,8 @@ class Game:
         assert all(p.ability in (*abilities.KINDS, "disabled") and type(p.ability_used) is bool for p in self.players)
         if self.config.abilities_enabled:
             assert all(p.objective.kind != "contrarian" and p.ability != "disabled" for p in self.players)
+            if self.config.rules_version == ABILITIES_VERSION:
+                assert {p.ability for p in self.players} == set(abilities.KINDS), "Each ability must appear exactly once"
         else:
             assert all(p.ability == "disabled" and not p.ability_used for p in self.players)
         assert all(type(p.wallet) is int and p.wallet >= 0 for p in self.players)

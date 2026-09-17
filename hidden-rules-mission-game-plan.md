@@ -4,12 +4,13 @@
 **Date:** September 10, 2026  
 **Status:** Objectives and all eight abilities implemented in the experimental prototype; balance and benchmark validity are untested.
 
-**September 11 update:** Contrarian is disabled in new default deals while its Red advantage is investigated. The active deck has 13 cards: six Loyalists and one of each other objective except Contrarian. New sessions enable abilities (`0.1-abilities-dev.2`). Contrarian references below describe the retained historical/experimental rule, not an active card in this profile.  
+**September 11 update:** Contrarian is disabled in new default deals while its Red advantage is investigated. The active deck has 13 cards: six Loyalists and one of each other objective except Contrarian. New sessions enable abilities (`0.1-abilities-dev.3`), with one copy of each ability. New web/CLI games read the editable profile, currently mission thresholds 15–30 and crews of 2–5. Contrarian references below describe the retained historical/experimental rule, not an active card in this profile.
 **Working title:** Hidden Rules Mission Game. This is a descriptive placeholder, not a final game name.
 
-**Ability strategy update:** New tables use `social.10`: joint payment/ability
+**Ability strategy update:** New tables use `social.11`: joint payment/ability
 forecasts inform crew selection, pledges, votes, and commitments; inspections
-inform persistent beliefs. Recurring residual effects after independently known
+inform persistent beliefs. Confirmed teams guide crew choices, while Blue pledges
+earn no allegiance or trust credit. Recurring residual effects after independently known
 crew payments support tentative scenarios without revealing other cards. Earlier
 saved controllers retain their previous behavior. See [implementation and
 limits](docs/abilities.md); these heuristics do not establish general rule discovery.
@@ -122,7 +123,7 @@ These are questions for experiments, not premises of the implementation.
 | First chairman | Uniformly random seat | Implementation default |
 | Later chairman | Seat after the most recent proposer | Implementation default |
 | Objective dealing | Finite 13-card deck described in Section 7 | Implementation default |
-| Ability dealing | Independent uniform draw from 8 types for each player; duplicates allowed | Implementation default |
+| Ability dealing | Shuffle the 8 abilities and deal each exactly once | Agreed; enforced for new deals |
 | Contrarian copies | 0 in new default games | Disabled pending balance work |
 | Automated run guard | Stop after 100 resolved attempts and label unresolved | Development default, not a gameplay victory rule |
 

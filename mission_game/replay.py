@@ -1,6 +1,7 @@
 """Observable replay boundaries, projected before they reach the browser."""
 
 from copy import deepcopy
+from bisect import bisect_right
 
 from .engine import Game
 
@@ -40,7 +41,7 @@ def frame_label(previous, current):
     return "Table updated"
 
 
-def designer_view(game, last_action, bot_decision=None):
+def designer_view(game, last_action, bot_decision=None, agent_predictions=()):
     """Explicit inspection data, never attached to ordinary player frames."""
     return deepcopy({
         "players": [{"id": p.id, "team": p.team, "wallet": p.wallet,
@@ -51,6 +52,7 @@ def designer_view(game, last_action, bot_decision=None):
         "sealed_submissions": game.pending,
         "last_action": last_action,
         "bot_decision": bot_decision,
+        "agent_predictions": list(agent_predictions),
         "last_resolution": game.resolutions[-1] if game.resolutions else None,
     })
 
@@ -59,10 +61,12 @@ class ReplayTimeline:
     def __init__(self, session, seat, designer=False):
         self.frames = []
         self.timeline = []
+        self.positions = []
+        self.last_position = len(session.game.action_log)
         game = Game.from_snapshot(session.initial)
         explanations = {entry["request_id"]: entry for entry in session.bot_decisions} if designer else {}
         previous = None
-        for record in [None, *session.game.action_log]:
+        for position, record in enumerate([None, *session.game.action_log]):
             if record:
                 game.submit(**record)
             observation = game.observe(seat)
@@ -77,8 +81,10 @@ class ReplayTimeline:
                      "mission": observation["public"]["mission"]["number"],
                      "phase": observation["phase"], "label": label}
             self.timeline.append(entry)
+            self.positions.append(position)
             self.frames.append({"observation": observation,
-                                "designer": designer_view(game, record, explanations.get(record["request_id"]) if record else None)
+                                "designer": designer_view(game, record, explanations.get(record["request_id"]) if record else None,
+                                                          [p for p in session.agent_predictions if p["position"] <= position])
                                 if designer else None})
             previous = observation
         if game.snapshot() != session.game.snapshot():
@@ -89,3 +95,9 @@ class ReplayTimeline:
             raise ValueError("Replay step is outside the saved game")
         return deepcopy({**self.frames[step], "step": step, "total_steps": len(self.frames),
                          "timeline": self.timeline, "verified": True})
+
+    def at_position(self, position):
+        """Project the same recorded moment through this seat's visible timeline."""
+        if type(position) is not int or not 0 <= position <= self.last_position:
+            raise ValueError("Replay position is outside the saved game")
+        return self.at(bisect_right(self.positions, position) - 1)

@@ -30,6 +30,20 @@ function client() {
   return {run: code => vm.runInContext(code, context), context, listeners};
 }
 
+test('AI prediction table labels uncertainty, links checkpoints, and escapes model evidence', () => {
+  const c = client();
+  c.context.predictions = [{mission: 1, position: 42, player_id: 'p0', summary: '<script>bad</script>',
+    estimates: Array.from({length: 8}, (_, i) => ({player_id: `p${i}`, p_blue: i ? 0.6 : 1, evidence: '<img src=x>'}))}];
+  const html = c.run('agentPredictionsHTML(predictions)');
+  assert.ok(html.includes('AI team predictions'));
+  assert.ok(html.includes('60%'));
+  assert.ok(html.includes('data-position="42"'));
+  assert.ok(html.includes('Red is the remaining probability'));
+  assert.ok(html.includes('&lt;script&gt;bad&lt;/script&gt;'));
+  assert.ok(!html.includes('<img src=x>'));
+  assert.equal(c.run('agentPredictionsHTML()'), '');
+});
+
 test('token controls cannot submit over budget, negative, fractional, or empty values', () => {
   const c = client();
   for (const values of ['{blue:6,red:0,green:0}', '{blue:3,red:3,green:0}', '{blue:-1,red:0,green:0}', '{blue:0.5,red:0,green:0}', '{blue:NaN,red:0,green:0}']) {
@@ -158,6 +172,31 @@ test('replay shows a private sealed decision without rendering live action contr
   assert.ok(!html.includes('id="replay-seat"'));
   c.run('state.replay.can_inspect=true');
   assert.ok(c.run('tableHTML()').includes('id="designer-toggle"'));
+});
+
+test('changing replay perspective or designer view keeps the shared position in requests and links', async () => {
+  const c = client(), requests = [], links = [];
+  c.context.recordRequest = path => requests.push(path);
+  c.context.history = {replaceState: (_, __, url) => links.push(url)};
+  c.run(`render=()=>{};state.mode="replay";
+    state.replay={step:17,position:42,viewing_seat:"p0",designer_enabled:false};
+    api=async path=>{recordRequest(path);const params=new URLSearchParams(path.split("?")[1]);
+      return {step:params.get("designer")==="true" ? 42 : 12,position:42,total_steps:100,
+        viewing_seat:params.get("seat"),designer_enabled:params.get("designer")==="true",observation:fixture};};`);
+  c.listeners.change({target:{id:'replay-seat',value:'p3',dataset:{}}});
+  await new Promise(setImmediate);
+  assert.equal(c.run('state.replay.viewing_seat'),'p3');
+  assert.equal(c.run('state.replay.step'),12);
+  c.listeners.change({target:{id:'designer-toggle',checked:true,dataset:{}}});
+  await new Promise(setImmediate);
+  assert.equal(c.run('state.replay.step'),42);
+  for (const url of [...requests, ...links]) {
+    const params = new URLSearchParams(url.split('?')[1]);
+    assert.equal(params.get('position'),'42');
+    assert.equal(params.get('seat'),'p3');
+    assert.equal(params.has('step'),false);
+  }
+  assert.equal(new URLSearchParams(requests[1].split('?')[1]).get('designer'),'true');
 });
 
 test('penalty attempts are described as no crew rather than a new selection', () => {

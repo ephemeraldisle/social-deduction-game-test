@@ -1,6 +1,8 @@
 """Versioned vote revenue, four-point games, and bot forecasts for those rules."""
 import json
 import unittest
+from dataclasses import replace
+from mission_game.config import REVENUE_ABILITIES_VERSION
 from mission_game import Game, GameConfig
 from mission_game.types import ObjectiveCard, Phase
 from mission_game.session import Session
@@ -14,8 +16,11 @@ from tests.test_ability_strategy import view, ready
 
 
 def new_game(**kwargs):
-    g = Game(42, GameConfig.abilities(crew_min=2, crew_max=2, threshold_min=8,
-                                    threshold_max=8, objective_deck=('loyalist',)*8, **kwargs), game_id='revenue')
+    # Isolate revenue behavior with repeated Scouts under the earlier deal rules.
+    config = replace(GameConfig.abilities(crew_min=2, crew_max=2, threshold_min=8,
+                                         threshold_max=8, objective_deck=('loyalist',)*8, **kwargs),
+                     rules_version=REVENUE_ABILITIES_VERSION)
+    g = Game(42, config, game_id='revenue')
     g.chairman = 0
     for p in g.players: p.ability = 'scout'
     return g

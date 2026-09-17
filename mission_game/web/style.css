@@ -59,9 +59,14 @@
 
 .vote-crew{list-style:none;padding:0;margin:14px 0 10px}.vote-crew li{display:flex;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}.vote-crew li strong{font-weight:600;overflow-wrap:anywhere}.vote-crew li span{color:var(--muted)}.current-vote-tally{font-size:12px;color:var(--muted);margin-bottom:14px}
 
-/* The chairman uses the full avatar circle; team badges get their own row. */
+/* Avatar badges preserve the same name and wallet alignment for every player. */
 .avatar.chair-mark{font-size:22px;line-height:1;color:#70511d;background:#f3dca5;border-color:#c39b51;box-shadow:0 0 0 1px #c39b5126}
-.player-identity>.player-name{min-width:0}
-.player-team-badge{align-self:flex-start;white-space:nowrap;font-size:10px;line-height:1.4;margin-top:8px;padding:3px 6px;border:1px solid var(--line);border-radius:6px}
-.player-team-badge.blue{color:#396594;background:var(--soft-blue);border-color:#ccdaea}.player-team-badge.red{color:#a9534b;background:var(--soft-red);border-color:#ead1cd}
-@media(min-width:901px) and (max-width:1150px){.avatar.chair-mark{font-size:19px}.player-team-badge{font-size:9px;padding:3px 4px}}
+.player-identity>.player-name{min-width:0}.player-avatar{position:relative;display:inline-flex;flex:none}
+.player-team-badge{position:absolute;right:-3px;bottom:-3px;display:grid;place-items:center;width:15px;height:15px;font-size:9px;font-weight:700;line-height:1;border:2px solid var(--panel);border-radius:50%;color:white}
+.player-team-badge.blue{background:var(--blue)}.player-team-badge.red{background:var(--red)}
+@media(min-width:901px) and (max-width:1150px){.avatar.chair-mark{font-size:19px}}
+
+.agent-predictions{margin:14px 0 24px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.prediction-table td{text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.prediction-table .prediction-blue{background:#e3eefb;color:#214a7b}.prediction-table .prediction-red{background:#f8e6e3;color:#8c3d33}
+.agent-predictions details{margin-top:10px}.agent-predictions summary{cursor:pointer;font-size:13px}.agent-predictions li{margin:7px 0;line-height:1.5}

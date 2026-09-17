@@ -9,7 +9,10 @@ from .types import Objective
 COMMON_VERSION = "0.1-common-rules-dev.3"
 OBJECTIVES_VERSION = "0.1-objectives-dev.4"
 LEGACY_ABILITIES_VERSION = "0.1-abilities-dev.1"
-ABILITIES_VERSION = "0.1-abilities-dev.2"
+REVENUE_ABILITIES_VERSION = "0.1-abilities-dev.2"
+ABILITIES_VERSION = "0.1-abilities-dev.3"
+REVENUE_VERSIONS = (REVENUE_ABILITIES_VERSION, ABILITIES_VERSION)
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "configs" / "development_abilities.json"
 DEFAULT_OBJECTIVE_DECK = ("loyalist",) * 6 + tuple(
     o.value for o in Objective if o not in (Objective.LOYALIST, Objective.CONTRARIAN))
 
@@ -42,8 +45,8 @@ class GameConfig:
             "blue_players": 5,
             "starting_wallet": 5, "income": 1, "approval_votes": 5,
             "rejection_limit": 8, "rejection_red_tokens": 5,
-            "missions_to_win": 4 if self.rules_version == ABILITIES_VERSION else 3,
-            "vote_income": 1 if self.rules_version == ABILITIES_VERSION else 0,
+            "missions_to_win": 4 if self.rules_version in REVENUE_VERSIONS else 3,
+            "vote_income": 1 if self.rules_version in REVENUE_VERSIONS else 0,
         }
         for key, expected in fixed.items():
             actual = getattr(self, key)
@@ -53,6 +56,7 @@ class GameConfig:
                     "0.1-objectives-dev.3": ("development_objectives", "deck", False),
                     OBJECTIVES_VERSION: ("development_objectives", "deck", False),
                     LEGACY_ABILITIES_VERSION: ("development_abilities", "deck", True),
+                    REVENUE_ABILITIES_VERSION: ("development_abilities", "deck", True),
                     ABILITIES_VERSION: ("development_abilities", "deck", True)}
         if (type(self.abilities_enabled) is not bool or self.rules_version not in profiles
                 or (self.mode, self.objective_mode, self.abilities_enabled) != profiles[self.rules_version]):
@@ -67,14 +71,20 @@ class GameConfig:
         for key in ("threshold_min", "threshold_max", "crew_min", "crew_max", "max_attempts"):
             if type(getattr(self, key)) is not int or getattr(self, key) < 1:
                 raise ValueError(f"{key} must be a positive integer")
-        if not 8 <= self.threshold_min <= self.threshold_max <= 12:
-            raise ValueError("Mission thresholds must be within 8..12")
-        if not 2 <= self.crew_min <= self.crew_max <= 4:
-            raise ValueError("Crew sizes must be within 2..4")
+        if self.rules_version == ABILITIES_VERSION:
+            if self.threshold_min > self.threshold_max:
+                raise ValueError("threshold_min must not exceed threshold_max")
+            if not 2 <= self.crew_min <= self.crew_max <= self.players:
+                raise ValueError("Crew sizes must be within 2..8")
+        else:
+            if not 8 <= self.threshold_min <= self.threshold_max <= 12:
+                raise ValueError("Mission thresholds must be within 8..12")
+            if not 2 <= self.crew_min <= self.crew_max <= 4:
+                raise ValueError("Crew sizes must be within 2..4")
 
     def to_dict(self):
         data = asdict(self)
-        if self.rules_version != ABILITIES_VERSION:
+        if self.rules_version not in REVENUE_VERSIONS:
             data.pop("vote_income")  # Preserve historical snapshot representation.
         if self.objective_mode == "all_loyalist":
             data.pop("objective_deck")  # Preserve version-1 snapshot representation.

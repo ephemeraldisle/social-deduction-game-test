@@ -6,11 +6,13 @@ from math import ceil
 from .social_baseline import (SocialPolicy as BaselinePolicy, SocialSettings, Traits,
                               approval_probability, vector, winner, COLORS)
 from .ability_forecasts import EffectEvidence, apply_own, choices, pending_vote_income
-from .beliefs import SocialBeliefs
+from .beliefs import SocialBeliefs, AllegianceBeliefs
 from .bot_memory import EvidenceMemory
 from .rng import tuple_tree
+from .red_strategy import public_cover, continuation
 
-VERSION = "social.10"
+VERSION = "social.12"
+ALLEGIANCE_VERSIONS = ("social.11", VERSION)
 
 
 class SocialPolicy(BaselinePolicy):
@@ -25,20 +27,43 @@ class SocialPolicy(BaselinePolicy):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.beliefs = AllegianceBeliefs()
         self.effects = EffectEvidence()
         self._case_cache = None
         self._extra = {}
+        self._red_context = None
 
     def enabled(self, observation):
         return observation["public"]["rules"].get("abilities_enabled", False)
 
     def choose_action(self, observation):
+        belief_type = AllegianceBeliefs if self.version in ALLEGIANCE_VERSIONS else SocialBeliefs
+        if type(self.beliefs) is not belief_type:
+            self.beliefs = belief_type.from_snapshot(self.beliefs.snapshot())
         self.effects.observe(observation)
         self._case_cache = {}
+        self._red_context = None
         try:
-            return super().choose_action(observation)
+            action = super().choose_action(observation)
+            if self.version in ALLEGIANCE_VERSIONS:
+                self.last_decision["details"]["known_teams"] = dict(self.beliefs.known_teams)
+                players = [p["id"] for p in observation["public"]["players"]]
+                if action["type"] == "select_crew" and self.crew_concerns(observation, players):
+                    self.last_decision["reason"] = "Prioritized crews with the fewest confirmed Red players, then compared funding, votes, and my private objective."
+            return action
         finally:
             self._case_cache = None
+            self._red_context = None
+
+    def red_context(self, observation):
+        if self.version != VERSION or observation["private"]["team"] != "red":
+            return None
+        if self._red_context is None:
+            context = public_cover(observation)
+            if self._case_cache is not None:
+                self._red_context = context
+            return context
+        return self._red_context
 
     def candidates(self, observation, crew=None):
         crew = observation["public"]["crew"] if crew is None else crew
@@ -93,6 +118,14 @@ class SocialPolicy(BaselinePolicy):
             amount = min(self.wallet(observation, pid) + revenue, share)
             if pledges is not None and pid in pledges:
                 promise = pledges[pid]
+                colored = promise["blue"] + promise["red"]
+                if self.version in ALLEGIANCE_VERSIONS and colored:
+                    # A fresh Blue promise is cheap talk. Trust in its color
+                    # starts with inferred cooperation and must be earned by
+                    # independently verified kept promises, not further claims.
+                    kept_evidence = max(0., self.beliefs.players[pid]["kept"] - 3.)
+                    alignment = (promise["blue"] * blue + promise["red"] * (1 - blue)) / colored
+                    reliability *= (alignment + kept_evidence) / (1 + kept_evidence)
                 amount = min(self.wallet(observation, pid) + revenue, sum(promise.values()))
                 options = [(promise, reliability), (vector(), (1 - reliability) * .3),
                            (vector("blue", amount), (1 - reliability) * .7 * blue),
@@ -109,6 +142,59 @@ class SocialPolicy(BaselinePolicy):
         if self._case_cache is not None:
             self._case_cache[key] = result
         return result
+
+    def crew_concerns(self, observation, crew):
+        """Private knowledge guides Blue; covert Red must maintain public cover."""
+        if self.version not in ALLEGIANCE_VERSIONS:
+            return []
+        me = observation["viewer"]
+        badges = observation["public"].get("public_badges", {})
+        if observation["private"]["team"] == "blue":
+            known = self.beliefs.known_teams
+        elif badges.get(me) != "red":
+            known = badges
+        else:
+            return []  # An exposed Red player no longer has a Blue cover to keep.
+        return [pid for pid in crew if pid != me and known.get(pid) == "red"]
+
+    def plan_rank(self, observation, score, forecast):
+        rank = super().plan_rank(observation, score, forecast)
+        if self.version in ALLEGIANCE_VERSIONS and observation["action_spec"]["type"] == "select_crew":
+            # Minimize avoidable known-Red seats before optimizing private goals.
+            # This also yields a legal crew if every candidate crew has a concern.
+            return (-len(forecast.get("crew_allegiance_concerns", [])), *rank)
+        return rank
+
+    def allegiance_objection(self, observation, crew, forecast):
+        concerns = self.crew_concerns(observation, crew)
+        public = observation["public"]
+        if (not concerns or public["rejections"] >= self.settings.protest_relax_at
+                or forecast["outcome_likelihoods"]["personal_win"] >= .95):
+            return None
+        players = [p["id"] for p in public["players"]]
+        alternatives = len(players) - len(self.crew_concerns(observation, players))
+        unavoidable = max(0, len(crew) - alternatives)
+        return concerns[0] if len(concerns) > unavoidable else None
+
+    def predict_votes(self, observation, crew, pot, own, pledge, include_observed=True, outcomes=None, own_value=None):
+        votes = super().predict_votes(observation, crew, pot, own, pledge, include_observed, outcomes, own_value)
+        public = observation["public"]
+        badges = public.get("public_badges", {})
+        if (self.version not in ALLEGIANCE_VERSIONS or public["rejections"] >= self.settings.protest_relax_at
+                or not any(badges.get(pid) == "red" for pid in crew)):
+            return votes
+        outcomes = outcomes if outcomes is not None else [(pot, 1.)]
+        blue_win = sum(mass for result, mass in outcomes
+                       if winner(result, public["mission"]["threshold"]) == "blue")
+        if public["score"]["blue"] == public["rules"]["missions_to_win"] - 1 and blue_win >= .95:
+            return votes
+        observed = {v["player_id"] for v in public["votes"]} if include_observed else set()
+        for pid in votes:
+            if pid != observation["viewer"] and pid not in observed and badges.get(pid) != "red":
+                # Everyone sees the badge; a Blue promise does not make this an
+                # ordinary proposal. Private Scout receipts are not public facts.
+                votes[pid] *= .25
+        return votes
 
     def condition(self, observation, pot, own, crew, pledge, penalty=False, wallet_after=None, paid=None):
         kind = observation["private"]["objective"]["id"]
@@ -145,6 +231,8 @@ class SocialPolicy(BaselinePolicy):
         values = []
         incentive = satisfied = income = wallet = transfer = 0.
         mean, paid_mean = vector(), vector()
+        context = self.red_context(observation)
+        future = dict.fromkeys(("cover_value", "exposure_cost", "reserve_cost", "continuation_value"), 0.)
         for case in cases:
             pot, mass = case["pot"], case["mass"]
             completed = winner(pot, public["mission"]["threshold"])
@@ -175,6 +263,11 @@ class SocialPolicy(BaselinePolicy):
                         blue = self.beliefs.estimate(choice["target"])["blue_preference"]
                         alignment = blue if side == "blue" else 1 - blue
                         value += .15 * case["transferred"] * (1 - 2 * alignment)
+                if context is not None:
+                    adjustment = continuation(observation, context, case, own, crew, choice)
+                    value += adjustment["continuation_value"]
+                    for key in future:
+                        future[key] += mass * adjustment[key]
             values.append((value, mass))
             incentive += mass * extra
             satisfied += mass * condition
@@ -192,6 +285,7 @@ class SocialPolicy(BaselinePolicy):
             key = tuple(case["pot"][c] for c in COLORS)
             display[key] = display.get(key, 0.) + case["mass"]
         return expected - risk, {"forecast_pot": mean, "outcome_likelihoods": likelihoods,
+            **({"red_strategy": {**context, **future}} if context is not None else {}),
             "expected_outcome_utility": expected, "risk_adjustment": risk,
             "expected_income": income, "condition_likelihood": satisfied,
             "expected_objective_incentive": incentive, "expected_wallet_after_effects": wallet,
@@ -201,7 +295,10 @@ class SocialPolicy(BaselinePolicy):
 
     def evaluate(self, observation, crew, own, pledges, phase, announced=None, penalty=False):
         if not self.enabled(observation):
-            return super().evaluate(observation, crew, own, pledges, phase, announced)
+            value, details = super().evaluate(observation, crew, own, pledges, phase, announced)
+            if self.version in ALLEGIANCE_VERSIONS:
+                details["crew_allegiance_concerns"] = self.crew_concerns(observation, crew)
+            return value, details
         me = observation["viewer"]
         claim = self.public_promise(observation, own) if announced is None else announced
         pledge = (pledges or {}).get(me, claim)
@@ -231,7 +328,7 @@ class SocialPolicy(BaselinePolicy):
         protest = not personal_win and (self.protest(observation, crew, pot, self.traits.selfishness)
                                         or self.objective_protest(observation, crew, pot, own, pledge))
         if phase in ("select_crew", "pledge", "vote"):
-            votes[me] = 0. if protest else float(utility > 0)
+            votes[me] = 0. if protest or self.allegiance_objection(observation, crew, uncertainty) else float(utility > 0)
         approval = approval_probability(votes.values())
         if phase in ("select_crew", "pledge"):
             utility = approval * utility - .5 * (1 - approval)
@@ -239,8 +336,16 @@ class SocialPolicy(BaselinePolicy):
             utility += self.settings.inclusion_weight * self.traits.selfishness * (me in crew)
         elif phase == "contribute" and me in crew:
             promise = observation["public"]["pledges"][me]
-            utility -= .3 * (1 - self.traits.selfishness) * sum(abs(own[c] - promise[c]) for c in COLORS)
+            deviation = .3 * (1 - self.traits.selfishness) * sum(abs(own[c] - promise[c]) for c in COLORS)
+            context = self.red_context(observation)
+            if context is not None:
+                # A cover story is not an unlimited debt to the opposing side.
+                # Actual pledge-dependent objectives are scored separately.
+                deviation = min(1., deviation) * (1 - context["public_exposure"])
+                deviation *= uncertainty["outcome_likelihoods"]["continues"]
+            utility -= deviation
         return utility, {**uncertainty, "expected_deposits": {**deposits, **({me: own} if me in crew else {})},
+            **({"crew_allegiance_concerns": self.crew_concerns(observation, crew)} if self.version in ALLEGIANCE_VERSIONS else {}),
             "vote_likelihoods": votes, "advertised_pot": advertised, "planned_deposit": own,
             "planned_ability": ability, "own_ability": observation["private"]["ability"]["id"],
             **({"pending_vote_income": pending_vote_income(observation)} if observation["public"]["rules"].get("vote_income") else {}),
@@ -330,6 +435,8 @@ class SocialPolicy(BaselinePolicy):
         if action["type"] == "contribute":
             action["ability"] = deepcopy(self.last_decision["details"]["planned_ability"])
             self.last_decision["reason"] = "Compared joint payment and ability plans, including final wallet, funding, ownership, and paid-history objectives. " + self.last_decision["reason"]
+            if "red_strategy" in self.last_decision["details"]:
+                self.last_decision["reason"] += " Weighed public cover and reserves for future missions. Terminal outcomes receive no continuation bonus or cost."
         return action
 
     def _choose_action(self, observation):
@@ -365,8 +472,13 @@ class SocialPolicy(BaselinePolicy):
                      and public["rejections"] < self.settings.protest_relax_at
                      and any(1 - self.beliefs.estimate(pid)["blue_preference"] >= self.settings.red_reject_threshold for pid in public["crew"] if pid != me)
                      and not (forecast["outcome_likelihoods"]["blue"] > .5 and value > 0))
-        approve = not protest and not blue_block and not red_block and value > rejection
+        allegiance_target = self.allegiance_objection(observation, public["crew"], forecast)
+        approve = not protest and not blue_block and not red_block and not allegiance_target and value > rejection
         complaint, explanation = self.complaint(observation, forecast, protest) if not approve else (None, None)
+        if allegiance_target:
+            complaint = {"modifier": "less", "player_id": allegiance_target}
+            source = "public badge" if public.get("public_badges", {}).get(allegiance_target) == "red" else "private Scout receipt"
+            explanation = f"I want to replace {allegiance_target}: the {source} confirms Red, and another crew can avoid that risk."
         forecast["vote_likelihoods"][me] = float(approve)
         forecast["approval_likelihood"] = approval_probability(forecast["vote_likelihoods"].values())
         from dataclasses import asdict
@@ -385,12 +497,13 @@ class SocialPolicy(BaselinePolicy):
 
     @classmethod
     def from_snapshot(cls, data):
-        if data["version"] not in (VERSION, "social.9"):
+        if data["version"] not in (VERSION, "social.9", "social.10", "social.11"):
             raise ValueError("Unsupported social policy version")
         policy = cls(traits=Traits(**data["traits"]), settings=data["settings"])
         policy.version = data["version"]
         policy.rng.setstate(tuple_tree(data["rng"]))
         policy.memory = EvidenceMemory.from_snapshot(data["memory"])
-        policy.beliefs = SocialBeliefs.from_snapshot(data["beliefs"])
+        belief_type = AllegianceBeliefs if data["version"] in ALLEGIANCE_VERSIONS else SocialBeliefs
+        policy.beliefs = belief_type.from_snapshot(data["beliefs"])
         policy.effects = EffectEvidence.from_snapshot(data["effects"])
         return policy

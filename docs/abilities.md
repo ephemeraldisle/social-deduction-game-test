@@ -1,17 +1,25 @@
 # Hidden abilities: implemented rules and limits
 
-New sessions use `0.1-abilities-dev.2` (schema 3) and a 13-card objective deck:
+New sessions use `0.1-abilities-dev.3` (schema 3) and a 13-card objective deck:
 six Loyalists, one of each other objective except Contrarian. Contrarian is
 currently disabled. The previous objectives and common-rules profiles remain
 available for controlled comparisons; existing supported saves keep their rules.
 No new objective types were added. Every player receives one token after each
 full vote (pass or fail), before contributions or penalties. Continuing-attempt
 income remains. First to four wins; Close Race is a 4–3 finish. The preceding
-abilities profile retains its first-to-three rules and has no vote revenue.
+`0.1-abilities-dev.1` profile retains its first-to-three rules and has no vote revenue;
+`0.1-abilities-dev.2` retains four wins, vote revenue, and its original deal rules.
 
-Each seat independently draws one of eight abilities, uniformly, with duplicates
-allowed. Ability randomness does not change teams, objectives, missions, or bot
+New deals shuffle one copy of each of the eight abilities and give one to each
+seat. Duplicate abilities are rejected in new-version snapshots; older versions
+retain their original assignments, including duplicates. Ability randomness does
+not change teams, objectives, missions, or bot
 personality. Only the holder's private card and controls disclose its rules.
+
+New web/CLI tables load `configs/development_abilities.json`, currently thresholds
+15–30 and crews of 2–5. Web creation rereads the file for each table. Current
+rules accept positive ordered threshold ranges and crews of 2–8; saved profiles
+retain their embedded ranges, and older versions retain their validation limits.
 
 | Ability | Implemented behavior |
 | --- | --- |
@@ -47,8 +55,8 @@ inspection additionally shows hidden cards and effects.
 
 ## Scripted opponents
 
-New games default to `social.10`. Each policy receives only its own observation.
-Saved `social.7`, `social.8`, and `social.9` controllers restore their previous decision
+New games default to `social.11`. Each policy receives only its own observation.
+Saved `social.7`, `social.8`, `social.9`, and `social.10` controllers restore their previous decision
 algorithm; a browser refresh does not upgrade an existing game's opponents.
 `straightforward.3` and `random-legal.3` remain simpler diagnostic comparisons.
 Random chooses legal activations and passes; Straightforward uses independent
@@ -60,9 +68,27 @@ opponent payments, then evaluated after deposits, bonuses, transfers, and color
 changes. This avoids choosing a different secret action for each possible future.
 Its private plan is separate from the public promise used to predict other votes.
 The final rejected proposal also considers abilities during the penalty attempt.
-`social.10` uses the table’s winning score and forecasts the pending vote revenue
+Since `social.10`, the planner uses the table’s winning score and forecasts the pending vote revenue
 for deposits and final wallets. Pledges remain limited to current funds; rejected
 proposals also award revenue. Paid-history inference excludes both income sources.
+
+`social.11` separates confirmed allegiance from uncertain cooperation. Its
+cooperation estimate gives a verified team 75% weight and behavioral evidence
+25%; this is a heuristic, not a calibrated payment probability. Repeated Blue
+pledges earn no allegiance or reliability credit. Unproven promises are
+discounted by inferred color preference; independently verified kept promises
+gradually earn more weight in payment forecasts.
+
+Blue crew selection first minimizes known Red members (public badges or private
+Scout results), then compares funding and private objectives. A covert Red
+chairman likewise avoids public Red badges; an exposed Red chairman can openly
+choose allies. If all legal crews require known Red members, choose the fewest.
+Bots normally object to avoidable known Red seats even for Close Race or
+Opposition Patron, naming the player in their complaint. This objection relaxes
+after five rejections or a forecast personal win of at least 95%. Other voters'
+estimated support drops for public Red crews; private inspections do not create
+that public objection. Cast ballots remain exact. These are deliberate social
+heuristics, not exhaustive searches for exceptions or proven optimal play.
 
 | Ability | Social planning |
 | --- | --- |
