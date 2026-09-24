@@ -6,6 +6,21 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
+function resolvedClient() {
+  const c = client();
+  c.run(`state.observation.phase='report';state.observation.action_spec={type:'report',min_statements:1};
+    state.observation.public.crew=['p1','p6'];
+    state.observation.history=[
+      {type:'mission_drawn',attempt:1,mission:{number:1,threshold:10,pot:{blue:2,red:0,green:0}}},
+      {type:'crew_selected',attempt:1,chairman:'p3',crew:['p1','p6']},
+      {type:'pledges_revealed',attempt:1,pledges:{p1:{blue:4,red:0,green:0},p6:{blue:3,red:0,green:1}}},
+      {type:'attempt_resolved',attempt:1,mission:{number:1,threshold:10,crew_size:2,pot:{blue:7,red:2,green:1},winner:'blue'},
+        score:{blue:1,red:0},wallets:{p1:1,p6:1},penalty:false}];
+    state.observation.public.mission=state.observation.history[3].mission;
+    captureResolution(state.observation);`);
+  return c;
+}
+
 function client() {
   const source = fs.readFileSync(path.join(__dirname, '../mission_game/web/app.js'), 'utf8').replace(/\nboot\(\);\s*$/, '');
   const listeners = {};
@@ -104,7 +119,7 @@ test('No requires a single complaint and switching to Yes clears it', () => {
   assert.equal(c.run('legalDraft()'), false);
 });
 
-test('vote prompt names the proposer and shows only the current crew pledges and ballots', () => {
+test('vote prompt names the proposer while pledges and ballots stay on the table', () => {
   const c = client();
   c.run(`state.observation.action_spec={type:"vote"};state.observation.phase="vote";
     state.observation.public.chairman="p5";state.observation.public.crew=["p1","p6"];
@@ -112,9 +127,12 @@ test('vote prompt names the proposer and shows only the current crew pledges and
     state.observation.public.votes=[{player_id:"p5",approve:true},{player_id:"p6",approve:false},{player_id:"p7",approve:true}];`);
   const html = c.run('actionHTML(state.observation)');
   assert.ok(html.includes('Does Fran’s crew have your vote?'));
-  assert.ok(html.includes('<strong>Ben</strong><span>3 Blue + 2 Green</span>'));
-  assert.ok(html.includes('<strong>Gray</strong><span>0 tokens</span>'));
-  assert.ok(html.includes('2 Yes</span> · <span class="vote-no">1 No</span> · 3/8 voted'));
+  const board = c.run('playersHTML(state.observation)');
+  assert.ok(board.includes('Pledged 3 Blue + 2 Green'));
+  assert.ok(board.includes('Pledged 0 tokens'));
+  assert.ok(board.includes('2 Yes · 1 No · 3/8 voted'));
+  assert.ok(!html.includes('vote-crew'));
+  assert.ok(!board.includes('99 Blue'));
   assert.ok(!html.includes('99 Blue'));
   assert.ok(!html.includes('Review the crew and its pledges'));
   assert.ok(!html.includes('Five Yes votes are needed'));
@@ -122,7 +140,7 @@ test('vote prompt names the proposer and shows only the current crew pledges and
   const fresh = c.run('actionHTML(state.observation)');
   assert.ok(fresh.includes('Does &lt;img src=x&gt;’s crew have your vote?'));
   assert.ok(!fresh.includes('<img'));
-  assert.ok(fresh.includes('0 Yes</span> · <span class="vote-no">0 No</span> · 0/8 voted'));
+  assert.ok(c.run('missionHTML(state.observation)').includes('0 Yes · 0 No · 0/8 voted'));
 });
 
 test('No complaints appear on voter cards, escape names, and clear with a new proposal', () => {
@@ -133,19 +151,19 @@ test('No complaints appear on voter cards, escape names, and clear with a new pr
   for (const mode of ['table', 'replay']) {
     c.context.viewMode = mode;
     const html = c.run('state.mode=viewMode; playersHTML(state.observation)');
-    assert.ok(html.includes('Reason for No'));
+    assert.ok(html.includes('Voted No'));
     assert.ok(html.includes('More me'));
     assert.ok(html.includes('Less &lt;img'));
     assert.ok(!html.includes('<img'));
   }
   c.run('state.observation.public.votes=[]');
   assert.ok(!c.run('playersHTML(state.observation)').includes('player-complaint'));
-  c.run(`state.observation.history=[{type:"crew_selected"},
-    {type:"vote",player_id:"p0",approve:false,complaints:[{modifier:"more",player_id:"p0"}]},
-    {type:"proposal_rejected"},{type:"crew_selected"}];`);
+  c.run(`state.observation.history=[{type:"crew_selected",attempt:1,chairman:"p0",crew:["p0","p1"]},
+    {type:"vote",attempt:1,player_id:"p0",approve:false,complaints:[{modifier:"more",player_id:"p0"}]},
+    {type:"proposal_rejected",attempt:1},{type:"crew_selected",attempt:1,chairman:"p1",crew:["p1","p2"]}];`);
   const next = c.run('playersHTML(state.observation)');
-  assert.ok(next.includes('Previous proposal · Rejected'));
-  assert.ok(next.includes('Abby voted No:</b> More me'));
+  assert.ok(next.includes('Voted No · Proposal 1'));
+  assert.ok(next.includes('More me'));
 });
 
 test('untrusted player names and claims are escaped in the board and history', () => {
@@ -444,7 +462,7 @@ test('paced waiting never presents automatic cover slots as human decisions', ()
   assert.ok(!c.run('actionHTML(state.observation)').includes('Seal my choice'));
   assert.ok(c.run('pacingHTML()').includes('Next step'));
   c.run('state.canAdvance=false');
-  assert.ok(c.run('pacingHTML()').includes('Automatic play waits for your decision'));
+  assert.ok(c.run('pacingHTML()').includes('YOUR TURN'));
 });
 
 test('auto pacing pauses, respects speed, and discards timers after navigation', () => {
@@ -511,10 +529,12 @@ test('last step explains a vote, its reason, and the proposed crew on resume', (
     {id:1,attempt:1,type:'crew_selected',chairman:'p0',crew:['p5','p6']},
     {id:2,attempt:1,type:'vote',player_id:'p5',approve:false,complaints:[{modifier:'more',player_id:'p5'}]}];
     state.canAdvance=true;state.observation.action_spec=null;`);
-  const html=c.run('actionHTML(state.observation)');
-  assert.ok(html.includes('Fran votes No. Reason: More me.'));
-  assert.ok(html.includes('Abby’s crew: Fran, Gray.'));
-  assert.ok(!html.includes('Waiting for the table'));
+  const step=JSON.parse(c.run('JSON.stringify(latestStep(state.observation))'));
+  assert.equal(step.title,'Fran votes No. Reason: More me.');
+  assert.ok(step.lines.includes('Abby’s crew: Fran, Gray.'));
+  const board=c.run('playersHTML(state.observation)');
+  assert.ok(board.includes('More me'));
+  assert.equal(c.run('actionHTML(state.observation)'), '');
 });
 
 test('last step lists actual revealed pledges and never shows an unrevealed bot pledge', () => {
@@ -589,10 +609,12 @@ test('own sealed choice survives reload while automatic cover passes do not repl
 test('last-step text escapes player names and keeps report reveal ahead of automatic income and mission draw', () => {
   const c=client();
   c.run(`state.observation.public.players[6].name='<img src=x>';
+    state.observation.public.crew=['p6'];state.observation.public.pledges={p6:{blue:5,red:0,green:0}};
     state.observation.history=[{id:1,attempt:1,type:'pledges_revealed',pledges:{p6:{blue:5,red:0,green:0}}}];
     state.canAdvance=true;state.observation.action_spec=null;`);
-  let html=c.run('actionHTML(state.observation)');
-  assert.ok(html.includes('&lt;img src=x&gt; pledges 5 Blue.'));assert.ok(!html.includes('<img'));
+  let html=c.run('playersHTML(state.observation)');
+  assert.ok(html.includes('&lt;img src=x&gt;'));assert.ok(!html.includes('<img'));
+  assert.ok(html.includes('5 Blue'));
   c.run(`before=JSON.parse(JSON.stringify(state.observation));
     state.observation.history.push(
       {id:2,attempt:1,type:'reports_revealed',reports:{p5:[{player_id:'p5',verb:'gave',quantity:3,color:'blue'}]}},
@@ -601,4 +623,348 @@ test('last-step text escapes player names and keeps report reveal ahead of autom
   const step=JSON.parse(c.run('JSON.stringify(latestStep(state.observation,before))'));
   assert.equal(step.title,'The crew reveals its reports.');
   assert.deepEqual(step.lines,['Fran reports: Fran gave 3 Blue.']);
+});
+
+test('the table leads with eight seats, highlights the next voter, and keeps history on demand', () => {
+  const c = client();
+  c.run(`state.observation.phase="vote";state.observation.action_spec={type:"vote"};
+    state.observation.public.chairman="p5";
+    state.observation.public.votes=[{player_id:"p5",approve:true},{player_id:"p6",approve:true}];`);
+  const html = c.run('tableHTML()');
+  assert.equal((html.match(/data-player="p/g)||[]).length,8);
+  assert.match(html, /class="player-card [^"]*current[^"]*" data-player="p7"/);
+  assert.ok(html.indexOf('id="players-area"') < html.indexOf('class="pacing-bar"'));
+  assert.ok(html.includes('id="history-area" hidden'));
+  for (const removed of ['Recent activity','class="table-nav"','LAST STEP','Green funds. Blue & Red compete.']) assert.ok(!html.includes(removed));
+  c.run('state.historyVisible=true');
+  assert.ok(c.run('tableHTML()').includes('id="table-history"'));
+});
+
+test('player communications use public history, distinguish reports from facts, and retain earlier proposal context', () => {
+  const c = client();
+  c.run(`state.observation.public.players[1].name="<img src=x>";
+    state.observation.private.submissions=[{action:{type:"contribute",tokens:{red:99}}}];
+    state.observation.history=[
+      {id:1,attempt:1,type:"crew_selected",chairman:"p0",crew:["p0","p1"]},
+      {id:2,attempt:1,type:"vote",player_id:"p0",approve:false,complaints:[{modifier:"more",color:"blue"}]},
+      {id:3,attempt:1,type:"proposal_rejected",rejections:1},
+      {id:4,attempt:1,type:"crew_selected",chairman:"p1",crew:["p1","p2"]},
+      {id:5,attempt:1,type:"pledges_revealed",pledges:{p1:{blue:2,red:0,green:0}}},
+      {id:6,attempt:1,type:"reports_revealed",reports:{p1:[{player_id:"p1",verb:"gave",quantity:7,color:"red"}]}},
+      {id:7,attempt:1,type:"vote_income",amount_each:1}];`);
+  const html = c.run('playersHTML(state.observation)');
+  assert.ok(html.includes('Voted No · Proposal 1'));
+  assert.ok(html.includes('More Blue'));
+  assert.ok(html.includes('Report · claim'));
+  assert.ok(html.includes('&lt;img src=x&gt; gave 7 Red'));
+  assert.ok(!html.includes('<img'));
+  assert.ok(!html.includes('99'));
+  assert.ok(!html.includes('income'));
+  c.run('state.observation.public.attempt=2');
+  assert.equal(c.run('playerSignal(state.observation,"p1").context'), 'Attempt 1');
+});
+
+test('history filters retain resolved outcomes and mission context without displaying filtered events', () => {
+  const c = client();
+  c.run(`state.observation.history=[
+    {id:1,attempt:3,type:"mission_drawn",mission:{number:2,threshold:10,crew_size:2}},
+    {id:2,attempt:3,type:"crew_selected",chairman:"p1",crew:["p1","p2"]},
+    {id:3,attempt:3,type:"attempt_resolved",mission:{number:2,winner:"blue",threshold:10,pot:{blue:10,red:0,green:0}},wallets:{p1:0}},
+    {id:4,attempt:3,type:"reports_revealed",reports:{p1:[{player_id:"p1",verb:"gave",quantity:5,color:"blue"}]}},
+    {id:5,attempt:4,type:"mission_drawn",mission:{number:3,threshold:12,crew_size:3}}];
+    state.historyFilter="claims";`);
+  const claims = c.run('historyHTML(state.observation)');
+  assert.ok(claims.includes('Mission 2 · Attempt 3'));
+  assert.ok(claims.includes('Blue mission win · 1 event'));
+  assert.match(claims, /data-attempt="3" open/);
+  assert.ok(!claims.includes('In progress'));
+  assert.ok(!claims.includes('Wallets after resolution'));
+  c.run('state.historyFilter="votes"');
+  const votes = c.run('historyHTML(state.observation)');
+  assert.ok(votes.includes('Proposal 1 · Ben is chairman'));
+  assert.ok(votes.includes('Blue mission win'));
+  assert.ok(!votes.includes('Ben says:'));
+});
+
+test('reading sections pauses both live modes and replay without advancing or changing the draft', () => {
+  const c = client();
+  const focused = [];
+  c.context.document.querySelector = selector => selector === '#table-history' ? {
+    scrollIntoView() {}, focus() { focused.push(selector); },
+  } : null;
+  c.run('state.draft.tokens.blue=3;state.livePaused=false;state.canAdvance=false;jumpToSection("table-history")');
+  assert.equal(c.run('state.livePaused'), true);
+  assert.equal(c.run('state.draft.tokens.blue'), 3);
+  c.run('state.livePaused=false;state.canAdvance=true;jumpToSection("table-history")');
+  assert.equal(c.run('state.livePaused'), true);
+  c.run('state.mode="replay";state.playing=true;state.replay={step:7};jumpToSection("table-history")');
+  assert.equal(c.run('state.playing'), false);
+  assert.equal(c.run('state.replay.step'), 7);
+  assert.equal(focused.length, 3);
+});
+
+test('history expand and collapse apply across filters and preserve the pending decision', async () => {
+  const c = client();
+  const area = {innerHTML: ''};
+  c.context.document.querySelector = selector => selector === '#history-area' ? area : null;
+  c.run(`state.observation.history=[
+    {id:1,attempt:1,type:"crew_selected",chairman:"p0",crew:["p0","p1"]},
+    {id:2,attempt:2,type:"crew_selected",chairman:"p1",crew:["p1","p2"]}];
+    state.historyFilter="results";state.draft.tokens.blue=4;`);
+  await c.run('command({dataset:{command:"history-expand"}})');
+  assert.equal(c.run('state.historyOpen[1] && state.historyOpen[2]'), true);
+  assert.equal(c.run('state.livePaused'), true);
+  c.run('state.historyFilter="all"');
+  assert.equal((c.run('historyHTML(state.observation)').match(/data-attempt="\d+" open/g) || []).length, 2);
+  await c.run('command({dataset:{command:"history-collapse"}})');
+  assert.equal(c.run('state.historyOpen[1] || state.historyOpen[2]'), false);
+  assert.equal(c.run('state.draft.tokens.blue'), 4);
+  assert.ok(!area.innerHTML.includes('data-attempt="2" open'));
+});
+
+test('Scout visibly reveals the target without publishing the private result or hiding the chairman', () => {
+  const c = client();
+  assert.equal(c.run('knownTeam(state.observation,"p1")'), null);
+  c.run(`state.observation.public.chairman="p1";
+    state.observation.private.receipts=[{type:"scout",target:"p1",team:"red",attempt:1}];`);
+  const html = c.run('playersHTML(state.observation)');
+  const card = html.match(/<article[^>]*data-player="p1"[\s\S]*?<\/article>/)[0];
+  assert.ok(card.includes('known-red'));
+  assert.ok(card.includes('avatar red'));
+  assert.ok(card.includes('player-team-badge red'));
+  assert.ok(card.includes('Red<small>Scouted</small>'));
+  assert.ok(card.includes('Only you know'));
+  assert.ok(card.includes('Chairman'));
+  assert.equal(c.run('Object.keys(state.observation.public.public_badges).length'), 0);
+  assert.ok(!c.run('historyHTML(state.observation)').includes('Scouted'));
+  assert.equal(c.run('knownTeam(state.observation,"p2")'), null);
+  assert.equal(c.run('knownTeam(state.observation,"p0").team'), 'blue');
+});
+
+test('Scout knowledge follows the viewing seat and recorded moment, and claims never reveal teams', () => {
+  const c = client();
+  c.run(`state.mode="replay";state.observation.private.receipts=[{type:"scout",target:"p1",team:"red"}];
+    state.replay={observation:state.observation,designer_enabled:false};`);
+  assert.equal(c.run('knownTeam(state.observation,"p1").team'), 'red');
+  c.run('state.observation.private.receipts=[]');
+  assert.equal(c.run('knownTeam(state.observation,"p1")'), null);
+  c.run(`state.observation.viewer="p2";state.observation.private.team="red";
+    state.observation.history=[{type:"reports_revealed",attempt:1,reports:{p1:[{player_id:"p1",verb:"gave",quantity:5,color:"red"}]}}];`);
+  assert.equal(c.run('knownTeam(state.observation,"p1")'), null);
+  c.run('state.observation.public.public_badges={p3:"blue"}');
+  assert.equal(c.run('knownTeam(state.observation,"p3").source'), 'Official badge');
+  c.run('state.replay.designer={players:[{id:"p1",team:"blue"}]}');
+  assert.equal(c.run('knownTeam(state.observation,"p1")'), null);
+  c.run('state.replay.designer_enabled=true');
+  assert.equal(c.run('knownTeam(state.observation,"p1").source'), 'Designer view');
+  c.run('state.mode="table"');
+  assert.equal(c.run('knownTeam(state.observation,"p1")'), null);
+});
+
+test('voting marks only the actual crew and names it centrally, independently of team knowledge', () => {
+  const c = client();
+  c.run(`state.observation.phase="vote";state.observation.action_spec={type:"vote"};
+    state.observation.public.crew=["p1","p3"];
+    state.observation.private.receipts=[{type:"scout",target:"p1",team:"red"}];
+    state.observation.public.public_badges={p3:"blue"};state.draft.crew=["p5","p6"];`);
+  const html = c.run('playersHTML(state.observation)');
+  assert.equal((html.match(/class="crew-label"/g)||[]).length, 2);
+  assert.ok(html.includes('Proposed crew</span><strong>Ben · Drew</strong>'));
+  for (const pid of ['p1','p3']) {
+    const card = html.match(new RegExp(`<article[^>]*data-player="${pid}"[\\s\\S]*?<\\/article>`))[0];
+    assert.ok(card.includes('✓ Crew'));
+    assert.ok(card.includes('on crew'));
+  }
+  assert.ok(html.includes('Red<small>Scouted</small>'));
+  assert.ok(html.includes('Blue<small>Public</small>'));
+  c.run('state.observation.public.crew=["p5","p6"];state.observation.public.players[5].name="<img src=x>"');
+  const next = c.run('missionHTML(state.observation)');
+  assert.ok(next.includes('&lt;img src=x&gt; · Gray'));
+  assert.ok(!next.includes('Ben · Drew'));
+  assert.ok(!next.includes('<img'));
+});
+
+test('crew roster follows the editable selection but replay uses the recorded crew', () => {
+  const c = client();
+  c.run('state.observation.action_spec={type:"select_crew",crew_size:3};state.draft.crew=["p4","p5"]');
+  assert.ok(c.run('missionHTML(state.observation)').includes('Your crew</span><strong>Ellis · Fran'));
+  c.run('state.mode="replay"');
+  const replay = c.run('missionHTML(state.observation)');
+  assert.ok(replay.includes('Abby · Ben · Casey'));
+  assert.ok(!replay.includes('Ellis · Fran'));
+});
+
+test('each crew pledge has one dedicated tray independent of votes and reports', () => {
+  const c = client();
+  c.run(`state.observation.public.crew=['p1','p3','p6'];
+    state.observation.public.pledges={p1:{blue:3,red:0,green:2},p3:{blue:0,red:0,green:0},p6:{blue:0,red:4,green:0}};
+    state.observation.history=[{type:'crew_selected',attempt:1,chairman:'p0',crew:['p1','p3','p6']},
+      {type:'pledges_revealed',attempt:1,pledges:state.observation.public.pledges},
+      {type:'vote',attempt:1,player_id:'p1',approve:true,complaints:[]},
+      {type:'reports_revealed',attempt:1,reports:{p6:[{player_id:'p6',verb:'gave',quantity:2,color:'green'}]}}];`);
+  const html = c.run('playersHTML(state.observation)');
+  assert.equal((html.match(/data-pledge-player=/g)||[]).length,3);
+  for (const pid of ['p1','p3','p6']) {
+    assert.equal((html.match(new RegExp(`data-pledge-player="${pid}"`,'g'))||[]).length,1);
+    const card = html.match(new RegExp(`<article[^>]*data-player="${pid}"[\\s\\S]*?<\\/article>`))[0];
+    assert.ok(!card.includes('Pledged'));
+    assert.ok(!card.includes('pledge-tray'));
+  }
+  assert.ok(html.includes('Voted Yes'));
+  assert.ok(html.includes('Report · claim'));
+  assert.ok(html.includes('Ben · Pledged 3 Blue + 2 Green'));
+  assert.ok(html.includes('Drew · Pledged 0 tokens'));
+  assert.equal(c.run('playerSignal(state.observation,"p3")'),null);
+});
+
+test('pledge trays distinguish zero from unrevealed without exposing private or stale pledges', () => {
+  const c = client();
+  c.run(`state.observation.private.submissions=[{action:{type:'pledge',tokens:{blue:31,red:0,green:0}}}];
+    state.observation.public.pledges={p1:{blue:0,red:0,green:0},p7:{blue:99,red:0,green:0}};`);
+  const hidden = c.run('pledgeTrayHTML(state.observation,"p0")');
+  assert.ok(hidden.includes('Unrevealed'));
+  assert.ok(!hidden.includes('31'));
+  const zero = c.run('pledgeTrayHTML(state.observation,"p1")');
+  assert.ok(zero.includes('class="pledge-tray revealed"'));
+  assert.ok(zero.includes('<strong>0</strong>'));
+  assert.ok(!zero.includes('Unrevealed'));
+  assert.ok(!c.run('playersHTML(state.observation)').includes('99'));
+  c.run('state.observation.action_spec={type:"select_crew",crew_size:2};state.draft.crew=["p1","p7"]');
+  const draft = c.run('playersHTML(state.observation)');
+  assert.equal((draft.match(/class="pledge-tray unrevealed"/g)||[]).length,2);
+  assert.ok(!draft.includes('99'));
+});
+
+test('full crews disable adding another player while preserving remove and history controls', () => {
+  const c = client();
+  c.run('state.observation.action_spec={type:"select_crew",crew_size:2};state.draft.crew=["p1","p2"]');
+  const full = c.run('playersHTML(state.observation)');
+  assert.match(full, /data-command="select-player" data-id="p3"[^>]*disabled/);
+  assert.doesNotMatch(full, /data-command="select-player" data-id="p1"[^>]*disabled/);
+  assert.doesNotMatch(full, /data-command="player-history"[^>]*disabled/);
+  c.run('state.draft.crew.pop()');
+  assert.doesNotMatch(c.run('playersHTML(state.observation)'), /data-command="select-player" data-id="p3"[^>]*disabled/);
+});
+
+test('manual stepping restores focus to the transport control without moving it during auto play', async () => {
+  const c = client();
+  let focused = 0;
+  const next = {dataset:{command:'live-next'},focus(){focused++;}};
+  c.context.document.activeElement = next;
+  c.context.document.querySelector = selector => selector === '[data-command="live-next"]' ? next : null;
+  c.run('render=()=>{};announce=()=>{};state.canAdvance=true;api=async()=>({game:state.game,observation:fixture,can_advance:true,step_key:"new"})');
+  await c.run('advanceTable()');
+  assert.equal(focused,1);
+  c.context.document.activeElement = null;
+  await c.run('advanceTable()');
+  assert.equal(focused,1);
+});
+
+test('token steppers recover from an empty input and cannot exceed the wallet', async () => {
+  const c = client();
+  const input = {value:''};
+  c.context.document.querySelector = selector => selector === '#token-blue' ? input : null;
+  c.run('syncAction=()=>{};state.draft.tokens.blue=NaN');
+  await c.run('command({dataset:{command:"token",color:"blue",delta:"1"}})');
+  assert.equal(c.run('state.draft.tokens.blue'),1);
+  c.run('state.draft.tokens={blue:1,red:4,green:0}');
+  await c.run('command({dataset:{command:"token",color:"blue",delta:"1"}})');
+  assert.equal(c.run('state.draft.tokens.blue'),1);
+});
+
+test('resolution blocks auto advance, manual advance, and the next decision until continued', async () => {
+  const c = resolvedClient();let timers=0,requests=0;
+  c.context.setTimeout=()=>{timers++;};
+  c.context.countRequest=()=>{requests++;};
+  c.run('state.canAdvance=true;state.pace=1;api=countRequest;scheduleAdvance()');
+  await c.run('advanceTable()');
+  assert.equal(timers,0);assert.equal(requests,0);
+  assert.ok(c.run('pacingHTML()').includes('Paused for the result'));
+  assert.equal(c.run('actionHTML(state.observation)'),'');
+  c.run('state.canAdvance=false;state.draft.statements=[{player_id:"p0",verb:"gave",quantity:1,color:"blue"}]');
+  assert.equal(c.run('legalDraft()'),false);
+  c.run('render=()=>{}');
+  await c.run('command({dataset:{command:"resolution-continue"}})');
+  assert.equal(c.run('legalDraft()'),true);
+  c.run('captureResolution(state.observation)');
+  assert.equal(c.run('state.resolutionHold'),null);
+});
+
+test('revealed claims hold the resolved crew and pot after the engine starts the next mission', async () => {
+  const c=resolvedClient();
+  c.run(`state.resolutionHold=null;
+    state.observation.history.push(
+      {type:'reports_revealed',attempt:1,reports:{p1:[{player_id:'p1',verb:'gave',quantity:99,color:'red'}],p6:[{player_id:'p1',verb:'took',quantity:2,color:'blue'}]}},
+      {type:'income',attempt:1,wallets:{p1:2,p6:2}},
+      {type:'mission_drawn',attempt:2,mission:{number:2,pot:{blue:0,red:0,green:0}}});
+    state.observation.public.attempt=2;state.observation.public.crew=[];state.observation.public.pledges={};
+    state.observation.public.mission={number:2,threshold:12,crew_size:3,pot:{blue:0,red:0,green:0},winner:null};
+    state.observation.phase='select_crew';state.observation.action_spec={type:'select_crew',crew_size:3};
+    state.observation.private.last_contribution={tokens:{blue:777,red:0,green:0}};
+    state.draft.crew=['p4'];captureResolution(state.observation);`);
+  const board=c.run('playersHTML(state.observation)');
+  assert.ok(board.includes('Mission 1 complete!'));
+  assert.ok(board.includes('Crew claims revealed'));
+  assert.ok(board.includes('I gave 99 Red'));
+  assert.ok(board.includes('Ben took 2 Blue'));
+  assert.ok(board.includes('Report · claim'));
+  assert.equal((board.match(/class="crew-label"/g)||[]).length,2);
+  assert.ok(board.includes('data-pledge-player="p1"'));
+  assert.ok(board.includes('data-pledge-player="p6"'));
+  assert.ok(!board.includes('data-pledge-player="p4"'));
+  assert.ok(!board.includes('select-player'));
+  assert.ok(!board.includes('777'));
+  assert.ok(!board.includes('Up next'));
+  assert.ok(board.includes('Next mission'));
+  assert.equal(c.run('total(displayedResolution(state.observation).event.mission.pot)'),10);
+  c.run('render=()=>{}');
+  await c.run('command({dataset:{command:"resolution-continue"}})');
+  assert.equal(c.run('displayedResolution(state.observation)'),null);
+  assert.ok(c.run('playersHTML(state.observation)').includes('Mission 2'));
+});
+
+test('resolution announcements distinguish winning, unfinished, all-Green, and penalty pots', () => {
+  const c=resolvedClient();
+  let html=c.run('missionHTML(state.observation)');
+  assert.ok(html.includes('Mission 1 complete!'));assert.ok(html.includes('Blue wins'));
+  assert.ok(html.includes('+1 mission'));assert.ok(html.includes('celebration'));
+  assert.ok(html.includes('2 → 10'));assert.ok(html.includes('+8 this attempt'));
+  c.run('state.observation.history[3].mission.winner="red"');
+  assert.ok(c.run('missionHTML(state.observation)').includes('winner-red'));
+  c.run('state.observation.history[3].mission.winner=null;state.observation.history[3].mission.pot={blue:2,red:0,green:1}');
+  html=c.run('missionHTML(state.observation)');
+  assert.ok(html.includes('Attempt 1 resolved'));assert.ok(html.includes('7 more to fill'));
+  assert.ok(!html.includes('celebration'));
+  c.run('state.observation.history[3].mission.pot={blue:0,red:0,green:10}');
+  assert.ok(c.run('missionHTML(state.observation)').includes('All Green · mission stays open'));
+  c.run('state.observation.history[3].penalty=true');
+  html=c.run('playersHTML(state.observation)');
+  assert.ok(html.includes('No crew · rejection penalty'));
+  assert.ok(!html.includes('class="crew-label"'));
+});
+
+test('replay pauses at both reveal boundaries, never projects a later result, and ends without an invalid seek', async () => {
+  const c=resolvedClient();
+  c.run('state.mode="replay";state.resolutionSeen=null;state.playing=true;captureResolution(state.observation)');
+  assert.equal(c.run('state.playing'),false);
+  c.run('state.resolutionHold=null;state.playing=true;state.observation.history.push({type:"reports_revealed",attempt:1,reports:{}});captureResolution(state.observation)');
+  assert.equal(c.run('state.playing'),false);
+  c.run('state.replay={step:5,total_steps:6};render=()=>{};seek=()=>{throw Error("Should not seek past end")};');
+  await c.run('command({dataset:{command:"resolution-continue"}})');
+  assert.equal(c.run('state.resolutionHold'),null);
+  c.run('state.observation.history=state.observation.history.slice(0,3);state.observation.phase="contribute";captureResolution(state.observation)');
+  assert.equal(c.run('displayedResolution(state.observation)'),null);
+  assert.ok(!c.run('playersHTML(state.observation)').includes('Mission 1 complete!'));
+});
+
+test('a later crew cannot inherit the previous result, and result claims escape player text', () => {
+  const c=resolvedClient();
+  c.run(`state.observation.public.players[1].name='<img src=x>';
+    state.observation.history.push({type:'reports_revealed',attempt:1,reports:{p6:[{player_id:'p1',verb:'gave',quantity:4,color:'blue'}]}});
+    captureResolution(state.observation);`);
+  assert.ok(c.run('playersHTML(state.observation)').includes('&lt;img src=x&gt; gave 4 Blue'));
+  assert.ok(!c.run('playersHTML(state.observation)').includes('<img src=x>'));
+  c.run(`state.observation.history.push({type:'crew_selected',attempt:2,chairman:'p4',crew:['p2','p3']});captureResolution(state.observation);`);
+  assert.equal(c.run('resolutionMoment(state.observation)'),null);
+  assert.equal(c.run('state.resolutionHold'),null);
 });

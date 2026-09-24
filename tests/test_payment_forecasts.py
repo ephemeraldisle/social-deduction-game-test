@@ -71,6 +71,9 @@ class PaymentForecastTests(unittest.TestCase):
     def test_caution_does_not_reward_retaining_tokens_in_a_certain_outcome(self):
         view = observation('contribute', threshold=4)
         view['public'].update(crew=['p0', 'p1'], pledges={'p0': tokens(), 'p1': tokens()})
+        # Certainty requires no spendable opposing wallet: a zero pledge alone
+        # no longer rules out an unannounced Red payment.
+        view['public']['players'][1]['wallet'] = 0
         for caution in (0, 1):
             policy = prepared(view, Traits(1, caution, 0))
             smaller = policy.outcome_value(view, tokens(blue=4), tokens(blue=4), ['p0', 'p1'], tokens())

@@ -1,21 +1,33 @@
 # Hidden Rules Mission Game
 
-A working game with private objectives, all eight hidden abilities, a web table,
+A working game with private objectives, nine abilities, a web table,
 and verified replay, built from [the design plan](hidden-rules-mission-game-plan.md).
 
 **New web, terminal, agent, and simulation games enable abilities. Contrarian is
-removed from new default deals** while balance is revisited. Eight objectives
+removed from new default deals** while balance is revisited. Nine objectives
 remain active. Social computer opponents use their own cards and visible evidence;
-they plan abilities and payments together, using heuristic outcome estimates.
-Existing supported saves retain their original rules and cards.
+they use private funds and uncertain public evidence.
+Outdated saves are incompatible with these rules; start a fresh table.
 
-New tables pay **every player 1 token after each full vote**, pass or fail,
+New tables pay **every player 1 token when a crew is selected, before pledging**,
 in addition to continuing-attempt income. The first team to **four missions**
-wins; Close Race requires a **4–3** finish. New deals use `0.1-abilities-dev.3`
-and include exactly one of each of the eight abilities.
-Start a new table to play with them.
+wins; Close Race requires a **4–3** finish. New deals use `0.1-abilities-dev.5`
+and deal eight different abilities from a pool of nine, leaving one out at random.
+Wallets are private. Pledges are single quantities, assumed Blue. Vote spending
+is immediate: pooled tokens give each side one extra vote per 10, with remainder
+tokens breaking ties; a complete tie rejects. Ten percent of spending becomes
+Green reserve, with fractional credit carried forward. Reserves join the pot
+when an attempt resolves, including rejection penalties.
+Green Thumb adds five free influence to every vote, without spending wallet
+tokens or creating reserves. Green Machine wins with its team if at least
+20 Green tokens were added to missions across the whole table, including
+deposits, reserves, bonuses, and recoloring into Green.
 
 ## Run it
+
+For the browser-only build and GitHub Pages setup, see
+[deployment instructions](docs/deployment.md). It saves games on the visitor's
+device and can include selected [featured replays](examples/README.md).
 
 Python 3.11 or newer is required; this slice uses only the standard library.
 From the repository root, no installation or API key is needed:
@@ -23,6 +35,17 @@ From the repository root, no installation or API key is needed:
 ```bash
 python3 -m mission_game.cli web
 ```
+
+To restart the main server, including one started in an assistant-managed
+terminal, open your IDE's terminal at the repository root and run:
+
+```bash
+./restart-server.sh
+```
+
+This replaces the game server on port 8765 and keeps its output in your terminal.
+Press **Ctrl+C** there to stop it. Run the same command again after code changes,
+then refresh the browser.
 
 Open **http://127.0.0.1:8765**. No JavaScript build step, npm install, or external
 services are needed. Leave the Python server running while using the page.
@@ -33,39 +56,62 @@ and create a new table; no server restart is needed. Existing tables keep their
 saved settings. Use `web --config path/to/settings.json` to select another file.
 
 - **Take a seat** creates a game against seven Social computer players.
-- Enter your preferred **Seconds / step** (decimals allowed; zero for manual),
-  or use **Pause** and **Next step**.
-  Public votes and phase transitions advance individually; play waits for your
-  decision. The last-step panel names the latest voter and reason or shows the
-  revealed pledges. Speed is remembered in this browser.
-- Click a player for their public actions, votes, and reports. Each vote includes
-  the chairman and full proposed crew.
-  Your own private decisions are shown only in your history. Use the separate
-  **Add to crew / Remove from crew** buttons to select a crew.
-- Expand **Compare mission tokens** to see an earlier pot beside the current one, with
-  exact color and total changes. Wallet cards show a compact mission-resolution
-  change; hover it for before/after balances. Income updates balances quietly.
-- Mission funding, scores, wallets, pledges, votes, and No-vote complaints remain
-  visible together. Previous-proposal complaints stay visible until voting begins again.
-  Your private objective and ability show short reminders above your controls.
-  Expand either caret for full rules and objective progress; private results
-  also start collapsed.
-  Personal results explain whether you fulfilled your card, independently of
-  the team result. Opposition Patron’s global counter stays hidden.
-- **What happened** groups public history by attempt. Filter official results
-  or player claims; expand a result to inspect wallets at resolution.
+- Each new table draws eight distinct first names from a friendly pool of 48.
+  Names stay with the saved game when you resume or watch its replay.
+- The eight players sit around the mission pot. Each seat shows its latest public
+  action or report, crew membership, and current pledge. Only your own wallet is visible. The next
+  voter or chairman is highlighted. Older statements carry their attempt or
+  proposal number; reports remain labeled as claims.
+- Selected players move toward the table with a **✓ Crew** badge and a strong
+  outline. Their quantity-only pledges sit between their seat and the table. An unrevealed pledge is distinct from zero.
+  The proposed crew is also named in the center, separately from team colors.
+- **Scout** changes the revealed player's card, avatar, and badge to their team
+  color and adds **Scouted**. This knowledge is visible only to your seat. Replay
+  shows it only after the inspection occurred. Public badges are labeled separately.
+- Click a player for their full action history, grouped by Mission and Attempt
+  with the result, token changes, and a link to the full record. Use **Add to crew / Remove from
+  crew** beneath their seat when you are chairman. Once the crew is full, remove
+  someone before adding another player.
+- Click an unknown player's **avatar** to mark them as possibly **Blue** or
+  **Red**, or clear the mark. A **?** and **Your guess** keep these separate
+  from confirmed allegiance. Marks are private to this browser, saved per game
+  and seat, and hidden in replay. Scouting and public badges take precedence.
+- **Pause**, **Next step**, and **Seconds / step** sit below the table. Zero means
+  manual play; speed is remembered in this browser. Play waits for your decision.
+- Attempt resolution pauses on an animated pot reveal. Completed missions get a
+  winner announcement, score award, and brief celebration. A second pause keeps
+  the resolved crew, pledges, and revealed contribution claims at the table until
+  you continue. Replay stops at these moments too; reduced motion is respected.
+- Your decision controls and private cards sit beside the table. Expand a card
+  for its full rules and objective progress; opening details pauses playback.
+  Other private receipts remain under
+  **Private results**. Personal results explain your card independently of the
+  team result. Opposition Patron and Green Machine show table-wide progress
+  counters and bars even while their cards are collapsed. Each attempt's history
+  result records the cumulative paid-color and Green-addition totals.
+- **History** opens the complete public record and pauses playback. Filter results,
+  votes and crews, or player claims; expand or collapse attempts together.
+  Attempt outcomes remain accurate in every filter.
+- **Compare mission tokens**, below the table, shows earlier pots and exact changes.
+  Attempt and mission results show each color’s before/after amount and change.
 - Every accepted decision saves automatically. Close the page whenever you
   like, then use **Resume table** from the game library.
-- **Review so far** opens a read-only replay without advancing the live game.
+- **Replay** opens a read-only replay without advancing the live game.
   Step backward/forward, scrub to a point, click a decision, or play the timeline.
-  In completed games, changing perspective or Designer view keeps the same
+  In completed games, changing perspective or Reveal all keeps the same
   recorded moment even when the views have different frame numbers.
   Left/Right arrow keys also step when a form control isn't focused.
-- Finished games allow switching viewing seats. **Designer view**, explicitly
+- Finished games allow switching viewing seats. **Reveal all**, explicitly
   enabled, reveals teams, objectives, personal outcomes, sealed actions, and
   original deposits. New games also show **Why this bot acted**, with the saved
   personality, beliefs, evidence, forecast, and policy limitations at that replay step. Those controls are hidden for unfinished games, and the
   server rejects attempts to request that information.
+- With **Reveal all** enabled, click any player to inspect their perspective and
+  latest recorded rankings of the other seven players. Rankings are sorted by
+  Blue preference and include pledge reliability, report credibility, and the
+  evidence behind each estimate. They stay at that player's most recent recorded
+  assessment until another is available; **View that decision** jumps to its
+  source. Rewinding never shows assessments from later in the game.
 - **Watch a sample game** generates a complete bot game for immediate review.
   Existing `session.json` and `example-replay.json` files anywhere under `runs/`
   using the current rules are discovered automatically.
@@ -75,6 +121,11 @@ Use a different port or saved-game directory if needed:
 ```bash
 python3 -m mission_game.cli web --port 8767 --runs-dir runs
 ```
+
+Local saves, simulations, and model logs under `runs/`, along with historical
+notes under `docs/reviews/`, are ignored by Git. The three curated Astra replays
+and their [provenance](examples/provenance.md) live in `examples/` and are
+included in the public site through its manifest.
 
 New web games are stored under `runs/web/<game-id>/session.json`. Replay never
 changes a save. Saves from older development rules are not migrated;
@@ -111,23 +162,29 @@ to be downloaded for that optional installation.
 ## Test, simulate, and replay
 
 ```bash
-python3 -m unittest discover -s tests -v
-
-# Optional client-logic tests, if Node.js is installed:
-node --test tests/test_web_ui.cjs
+make test
+# Or run just the relevant part:
+python3 -m unittest tests.test_game_smoke -q
+node --test tests/test_current_ui.cjs
 
 python3 -m mission_game.cli simulate \
   --config configs/development_objectives.json \
-  --policy social --games 100 --seed 20260910 --out runs/social-smoke
+  --policy social --games 1 --seed 20260910 --out runs/social-smoke
 
 python3 -m mission_game.cli analyze runs/social-smoke
 python3 -m mission_game.cli replay runs/social-smoke/example-replay.json --seat 0
 ```
 
+The default check is a small set of focused smoke checks (roughly two seconds locally):
+core vote/reserve rules, privacy, affordable actions, current save/resume, complete
+bot games, and the changed UI. Historical replay and detailed bot-regression tests
+are not part of current validation. Do not run full historical test discovery for
+routine edits. Larger simulations below are optional balance tools.
+
 Simulation writes the exact configuration, per-game metrics in `games.jsonl`,
 the selected policy/version and settings in `policies.json`, an aggregate `summary.json`,
-and a replay of the first game. `--policy random` retains the original diagnostic
-controller; `--policy straightforward` retains the previous baseline. `--policy social`
+and a replay of the first game. `--policy random` is a legal-action diagnostic;
+`--policy straightforward` uses simple objective-aware heuristics. `--policy social`
 is the default for new web, play, agent, and simulation sessions. Use
 `--policy-config configs/policy_social.json` to tune new Social games.
 Resuming never replaces saved controllers. Failures get a
@@ -172,9 +229,9 @@ An optional `--seed` fixes the deal through the trusted CLI; the seed is never
 included in model requests.
 The output directory must be new.
 
-After each completed mission's closing inspections and reports, the model
+After each completed mission's reports and inspections (skipped when the game ends), the model
 records all eight team probabilities before receiving subsequent play.
-The completed replay's **Designer view → AI team predictions** shows these
+The completed replay's **Reveal all → AI team predictions** shows these
 checkpoints and their evidence; click a mission to seek to that moment. Earlier
 replay frames do not show later predictions. The run also saves `review.md`,
 `team-predictions.json`, model input/output logs, and the original CLI save.
@@ -199,20 +256,21 @@ game. See the [protocol](docs/protocol.md) for every action shape and retry rule
 
 - Eight secret team assignments: always five Blue and three Red;
   independently seeded setup, objective, mission, and per-controller random streams.
-- Eight active objective types: Loyalist, Saver, Spendthrift, Exact Change,
-  Opposition Patron, Close Race, Reliable Partner, and Passenger. Eight cards are
-  drawn from six Loyalists and one of each other active type (13 cards total).
+- Nine active objective types: Loyalist, Saver, Spendthrift, Exact Change,
+  Opposition Patron, Green Machine, Close Race, Reliable Partner, and Passenger. Eight cards are
+  drawn from six Loyalists and one of each other active type (14 cards total).
   Contrarian remains supported in older saves and explicit abilities-off scenarios.
-- All eight abilities: Thief, Stowaway, Auditor, Switcher, Standard Bearer, Scout,
-  Recolorer, and Echo. A separately seeded shuffle deals each ability once. Private
-  preparation, sealed hidden actions, ordered resolution, closing audits, use
+- Nine abilities: Thief, Stowaway, Auditor, Switcher, Standard Bearer, Scout,
+  Recolorer, Echo, and Green Thumb. A separately seeded shuffle deals eight without replacement. Private
+  preparation, sealed hidden actions, ordered resolution, between-attempt audits, use
   counters, truthful receipts, and objective swaps work in play and replay.
 - Crew selection, affordable sealed pledges, all eight clockwise votes,
   complaints, rejection rotation, and the five-Red penalty after eight rejections.
 - Sealed deposits, persistent mission pots, funding checks, Green's special
   role, Blue ties, surplus retirement, and first-to-four victory.
 - Reports with syntax validation and legal false statements; official results
-  remain separate from player claims. Reports close before income or game end.
+  remain separate from player claims. Continuing attempts report before audits and income;
+  the final attempt skips audits and reports and shows every player's win/loss result.
 - Terminal wallets frozen before income; a development attempt guard that
   cannot award a victory.
 - Allowlisted seat observations, isolated controller inputs, atomic snapshots,
@@ -225,63 +283,35 @@ game. See the [protocol](docs/protocol.md) for every action shape and retry rule
 
 ## Boundaries and next work
 
-Social bots analyze promises, outcomes, votes, crew choices, and attributed
-reports. They track Blue preference, pledge reliability, report credibility,
-and inclusion demands separately. A highly selfish bot may reject an early
-crew with **More me**; other bots learn that preference without treating the
-protest itself as evidence of Red allegiance. Their forecasts influence crew
-choices, pledges, votes, and objective-aware spending.
+Current Social bots (`social.16`) use the holder’s own wallet, objective, public
+badges, private scouting/audits, attributed reports and accusations, public pledges,
+aggregate outcomes, and inclusion requests. Confirmed teams remain certain;
+receipts expose false claims and repeated accusations cannot manufacture proof.
+Aggregate results offer weak shared evidence, never exact individual
+payments. Pledges do not reveal actual spending or allegiance. Bots compare a
+small set of affordable secret deposits. Vote bids weigh improved odds against
+token cost while preserving planned contributions. Bots use the income already
+received before pledging, check plausible payments above pledges near match point, and support
+crews that can recover a persistent pot in stages.
 
-Each proposed crew is evaluated with an actual plan for the bot's objective.
-Saver protects ten tokens; Spendthrift seeks spending opportunities; Exact
-Change accounts for the difference between a continuing attempt's income and
-the final wallet. Passenger seeks a free ride on a completing crew, and Reliable
-Partner actively pursues its two qualifying pledges. These inclusion demands
-can also produce **More me**, independent of personality.
+Wallet-related objectives influence saving and spending; Passenger and Reliable
+Partner can request crew inclusion. Reliable Partner requires paying the pledged
+quantity entirely in Blue, with at least two tokens, on two approved attempts.
+Red deposits may be concealed in reports. Abilities use private instructions and
+simple heuristics. These are deliberately small, uncalibrated strategies; they
+do not preserve previous bot behavior or promise optimal play. The older exact
+wallet/payment forecasting modules remain historical code and are bypassed by
+current game decisions. See [bot notes](docs/bots.md).
 
-Bots compare possible integer payments, including broken promises and Blue ties,
-instead of treating an average pot as a certain win. Equally valuable plans favor
-the stronger tactical color margin. Holding tokens has no generic scoring bonus;
-saving incentives come from the objective. Designer review shows estimated
-mission and personal outcome chances alongside the average pot.
-
-Bots seeking Red, including temporary objective goals such as Blue Close Race,
-use Blue cover pledges and plan their actual spending separately. Both sides use
-the same situational complaints: inclusion, funding, or objections to a player's
-pledge/history. Accusations influence later trust and choices: trusted speakers
-carry more weight, while unsupported blame can make an unproven accuser suspect.
-Designer review shows the private plan alongside the public-promise forecast.
-
-Each controller saves isolated evidence, beliefs, personality, settings, and
-randomness. Designer review makes the estimates and their evidence inspectable.
-See [the bot implementation notes](docs/bots.md) for exact behavior and tuning.
-These are uncalibrated heuristics with short-horizon objective scoring; they
-do not establish human-level difficulty. Both earlier policies remain available.
-
-The objective and ability mechanics in **milestone 2** are implemented. The default
-`social.12` bots plan their own modifying abilities alongside deposits, crew choices,
-and votes, including final wallets and original-payment objective credit. They
-choose useful inspection targets and retain badge/scouting/audit evidence.
-Confirmed teams remain influential despite contrary claims. Blue bots avoid
-recruiting known Red players, and covert Red bots avoid publicly exposed allies.
-Blue pledges earn no allegiance or trust credit; verified kept promises improve
-payment forecasts. Votes account for public badges as well as private goals.
-Red bots also weigh public cover and reserves for later missions. They can make
-small Blue payments early, avoid redundant Red spending, and abandon cover for
-a decisive result. A Blue cover pledge does not force an expensive donation
-to a lost mission. These continuation values are heuristic, not a guarantee of
-stronger play or calibrated opponent beliefs.
-Repeated effects after independently verified crew payments can become tentative
-forecast scenarios. Public pot/wallet discrepancies alone cannot certify spending
-or lies. Arbitrary rule discovery and balance need further playtesting.
-Existing saves retain their original controllers; start a new table for the
-updated policy. Random and Straightforward remain simpler comparison policies.
-See [the ability implementation notes](docs/abilities.md) for timing and limits.
+Old snapshots and replays are rejected rather than migrated. The saved-game
+library skips incompatible files; they are not deleted from disk. Current games
+still save and resume normally. See [ability notes](docs/abilities.md) for the
+unchanged abilities and resolution order.
 
 Current persistence uses atomic JSON snapshots. The web server
 binds only to `127.0.0.1`; it is a trusted local tool, not a hosted multiplayer or
 benchmark-isolation service. It checks request origins and uses a per-server
-token for mutations. Designer mode intentionally exposes finished-game secrets.
+token for mutations. Reveal all intentionally exposes finished-game secrets.
 
 Objective predicates and private progress live in `mission_game/objectives.py`.
 New web and CLI games load `configs/development_abilities.json` by default.

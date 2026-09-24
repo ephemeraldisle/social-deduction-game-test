@@ -7,10 +7,17 @@ from uuid import uuid4
 from .config import GameConfig, ABILITIES_VERSION
 from . import abilities, objectives
 from .rng import stream, tuple_tree
-from .types import COLORS, MAX_QUANTITY, Mission, ObjectiveCard, Phase, Player, Tokens, mission_winner
+from .types import COLORS, MAX_QUANTITY, Mission, ObjectiveCard, Phase, Player, Tokens, mission_winner, vote_tally
 
-SCHEMA_VERSION = 3
-DEFAULT_NAMES = ("Abby", "Ben", "Casey", "Drew", "Ellis", "Fran", "Gray", "Harper")
+SCHEMA_VERSION = 5
+NAME_POOL = (
+    "Abby", "Alex", "Avery", "Ben", "Blake", "Casey", "Charlie", "Chloe",
+    "Dana", "Devon", "Drew", "Eden", "Eli", "Ellis", "Emery", "Finley",
+    "Fran", "Harper", "Hazel", "Jamie", "Jesse", "Jordan", "Jules", "Kai",
+    "Kendall", "Lane", "Lee", "Logan", "Max", "Morgan", "Nico", "Noel",
+    "Parker", "Quinn", "Reese", "Riley", "Robin", "Rory", "Rowan", "Sam",
+    "Sasha", "Shay", "Sky", "Sydney", "Taylor", "Toby", "Wren", "Zoe",
+)
 
 
 class ActionError(ValueError):
@@ -22,8 +29,11 @@ class ActionError(ValueError):
 
 
 class Game:
-    def __init__(self, seed=0, config=None, names=DEFAULT_NAMES, game_id=None):
+    def __init__(self, seed=0, config=None, names=None, game_id=None):
         self.config = config or GameConfig()
+        if names is None:
+            # Cosmetic randomness must not change teams, cards, or missions.
+            names = stream(seed, "names").sample(NAME_POOL, 8)
         if len(names) != 8 or any(not isinstance(n, str) or not n.strip() for n in names):
             raise ValueError("Exactly eight nonempty player names are required")
         setup_rng = stream(seed, "setup")
@@ -57,6 +67,8 @@ class Game:
         self.crew = []
         self.pledges = {}
         self.votes = []
+        self.reserve = 0
+        self.reserve_credit = 0  # Tenths of a Green token, carried across attempts.
         self.pending = {}
         self.action_log = []
         self._accepted = {}
@@ -65,7 +77,7 @@ class Game:
         self.completed_missions = []
         self.last_contributions = {}
         self.frozen_result = None
-        self.accounting = {"initial": 40, "income": 0, "penalty": 0, "removed": 0}
+        self.accounting = {"initial": 40, "income": 0, "penalty": 0, "removed": 0, "vote_spent": 0, "reserve_created": 0}
         if self.config.abilities_enabled:
             self.accounting["bonus"] = 0
         self._event("game_started", mode=self.config.mode,
@@ -75,7 +87,7 @@ class Game:
 
     @property
     def schema_version(self):
-        return 3 if self.config.abilities_enabled else 2 if self.config.objective_mode == "deck" else 1
+        return SCHEMA_VERSION
 
     @property
     def status(self):
@@ -145,18 +157,22 @@ class Game:
             spec = {"type": self._action_type()}
             if self.phase == Phase.SELECT_CREW:
                 spec.update(crew_size=self.mission.crew_size, players=[p.id for p in self.players])
-            elif self.phase in (Phase.PLEDGE, Phase.CONTRIBUTE):
+            elif self.phase == Phase.PLEDGE:
+                spec.update(max_total=player.wallet)
+            elif self.phase == Phase.CONTRIBUTE:
                 spec.update(colors=list(COLORS), max_total=player.wallet if player_id in self.crew else 0)
                 if self.config.abilities_enabled and self.phase == Phase.CONTRIBUTE:
                     spec["on_crew"] = player_id in self.crew
             elif self.phase == Phase.VOTE:
-                spec.update(max_complaints=1, complaint_required_on_no=True)
+                spec.update(max_complaints=1, complaint_required_on_no=True, max_influence=player.wallet,
+                            vote_bonus=abilities.vote_bonus(player))
             elif self.phase == Phase.REPORT:
                 spec.update(min_statements=1, max_statements=3,
                             max_quantity=MAX_QUANTITY)
             if self.config.abilities_enabled:
                 spec["ability"] = abilities.choice_spec(self, player)
         private = {
+            "wallet": player.wallet,
             "team": player.team,
             "objective": (objectives.private_card(player, self.score, self.resolutions, self.config.missions_to_win)
                           if self.schema_version >= 2 else
@@ -176,12 +192,15 @@ class Game:
             "request_id": request_id, "revision": self.revision,
             "action_spec": spec, "own_submission_received": player_id in self.pending,
             "public": {
-                "players": [{"id": p.id, "name": p.name, "wallet": p.wallet} for p in self.players],
+                "players": [{"id": p.id, "name": p.name} for p in self.players],
                 "chairman": self.players[self.chairman].id,
                 "attempt": self.attempt, "rejections": self.rejections,
                 "mission": self.mission.to_dict(), "score": self.score,
                 "crew": self.crew, "pledges": self.pledges, "votes": self.votes,
+                "vote_tally": vote_tally(self.votes), "reserve": self.reserve,
+                "reserve_credit": self.reserve_credit,
                 "completed_missions": self.completed_missions,
+                "token_totals": objectives.token_totals(self.resolutions),
                 "public_badges": {p.id: p.team for p in self.players if p.ability == "standard_bearer"},
                 "rules": {
                     "team_counts": {"blue": self.config.blue_players, "red": self.config.players - self.config.blue_players},
@@ -191,13 +210,16 @@ class Game:
                     "initiative": "Clockwise from the final proposer; preparation starts with its chairman.",
                     "threshold_range": [self.config.threshold_min, self.config.threshold_max],
                     "crew_range": [self.config.crew_min, self.config.crew_max],
-                    "approval_votes": 5, "rejection_limit": 8,
+                    "tokens_per_vote": 10, "reserve_percent": 10, "tie_approves": False,
+                    "hidden_wallets": True, "rejection_limit": 8,
                     "rejection_red_tokens": 5, "income": 1,
                     "missions_to_win": self.config.missions_to_win, "development_attempt_limit": self.config.max_attempts,
-                    **({"vote_income": self.config.vote_income} if self.config.vote_income else {}),
+                    **({"proposal_income": self.config.proposal_income} if self.config.proposal_income else {}),
                 },
                 "result": ({"winner": self.frozen_result["winner"],
-                            "reason": self.frozen_result["reason"]}
+                            "reason": self.frozen_result["reason"],
+                            "players": {pid: {"won": result["won"]}
+                                        for pid, result in self.frozen_result["players"].items()}}
                            if self.phase == Phase.GAME_OVER else None),
             },
             "private": private, "history": self.events,
@@ -222,7 +244,14 @@ class Game:
                     or any(not isinstance(pid, str) or pid not in ids for pid in crew)
                     or len(set(crew)) != len(crew)):
                 raise ActionError("invalid_crew", f"Select exactly {self.mission.crew_size} distinct player IDs")
-        elif self.phase in (Phase.PLEDGE, Phase.CONTRIBUTE):
+        elif self.phase == Phase.PLEDGE:
+            self._keys(action, ("type", "quantity"))
+            quantity = action["quantity"]
+            if type(quantity) is not int or not 0 <= quantity <= MAX_QUANTITY:
+                raise ActionError("invalid_tokens", "Pledge a nonnegative integer quantity")
+            if quantity > self._player(player_id).wallet:
+                raise ActionError("unaffordable", "The pledge exceeds your current wallet")
+        elif self.phase == Phase.CONTRIBUTE:
             optional = ("ability",) if self.config.abilities_enabled and self.phase == Phase.CONTRIBUTE else ()
             self._keys(action, ("type", "tokens"), optional)
             try:
@@ -236,9 +265,14 @@ class Game:
             if tokens.total > self._player(player_id).wallet:
                 raise ActionError("unaffordable", "The total exceeds your current wallet")
         elif self.phase == Phase.VOTE:
-            self._keys(action, ("type", "approve"), ("complaints",))
+            self._keys(action, ("type", "approve"), ("complaints", "influence"))
             if type(action["approve"]) is not bool:
                 raise ActionError("invalid_vote", "approve must be a boolean")
+            influence = action.get("influence", 0)
+            if type(influence) is not int or not 0 <= influence <= MAX_QUANTITY:
+                raise ActionError("invalid_influence", "Vote spending must be a nonnegative integer")
+            if influence > self._player(player_id).wallet:
+                raise ActionError("unaffordable", "Vote spending exceeds your current wallet")
             complaints = action.get("complaints", [])
             if not isinstance(complaints, list) or len(complaints) != (0 if action["approve"] else 1):
                 raise ActionError("invalid_complaints", "A No vote requires exactly one complaint; a Yes vote cannot have a complaint")
@@ -291,26 +325,35 @@ class Game:
         if self.phase == Phase.SELECT_CREW:
             self.crew = normalized["crew"]
             self._event("crew_selected", chairman=player_id, crew=self.crew)
+            if self.config.proposal_income:
+                for player in self.players:
+                    player.wallet += self.config.proposal_income
+                self.accounting["income"] += self.config.proposal_income * self.config.players
+                self._event("proposal_income", amount_each=self.config.proposal_income)
             self._advance(Phase.PLEDGE)
         elif self.phase == Phase.VOTE:
+            influence = normalized.get("influence", 0)
+            self._player(player_id).wallet -= influence
+            created, self.reserve_credit = divmod(self.reserve_credit + influence, 10)
+            self.reserve += created
+            self.accounting["vote_spent"] += influence
+            self.accounting["reserve_created"] += created
             vote = {"player_id": player_id, "approve": normalized["approve"],
+                    "influence": influence,
                     "complaints": normalized.get("complaints", [])}
+            if bonus := abilities.vote_bonus(self._player(player_id)):
+                vote["bonus"] = bonus
             self.votes.append(vote)
             self._event("vote", **vote)
-            if len(self.votes) == self.config.players and self.config.vote_income:
-                for player in self.players:
-                    player.wallet += self.config.vote_income
-                self.accounting["income"] += self.config.vote_income * self.config.players
-                self._event("vote_income", amount_each=self.config.vote_income,
-                            wallets={p.id: p.wallet for p in self.players})
             if len(self.votes) < 8:
                 self._advance(Phase.VOTE)
-            elif sum(v["approve"] for v in self.votes) >= self.config.approval_votes:
-                self._event("proposal_approved", yes_votes=sum(v["approve"] for v in self.votes))
+            elif vote_tally(self.votes)["approved"]:
+                self._event("proposal_approved", tally=vote_tally(self.votes),
+                            yes_votes=vote_tally(self.votes)["yes"]["votes"])
                 self._advance(Phase.CONTRIBUTE)
             else:
                 self.rejections += 1
-                self._event("proposal_rejected", rejections=self.rejections)
+                self._event("proposal_rejected", rejections=self.rejections, tally=vote_tally(self.votes))
                 if self.rejections == self.config.rejection_limit:
                     self.crew, self.pledges = [], {}
                     if self.config.abilities_enabled:
@@ -329,16 +372,19 @@ class Game:
                     self._advance(Phase.PREPARE_SCOUT if self.phase == Phase.PREPARE_SWAP else Phase.SELECT_CREW)
                 elif self.phase == Phase.AUDIT:
                     abilities.audit(self)
-                    self._advance(Phase.REPORT)
+                    self._finish_attempt()
                 elif self.phase == Phase.PLEDGE:
-                    self.pledges = {pid: self.pending[pid]["tokens"] for pid in self.crew}
+                    self.pledges = {pid: self.pending[pid]["quantity"] for pid in self.crew}
                     self._event("pledges_revealed", pledges=self.pledges)
                     self._advance(Phase.VOTE)
                 elif self.phase == Phase.CONTRIBUTE:
                     self._resolve(penalty=not self.crew)
                 elif self.phase == Phase.REPORT:
                     self._event("reports_revealed", reports={pid: self.pending[pid]["statements"] for pid in self.crew})
-                    self._finish_attempt()
+                    if self.config.abilities_enabled:
+                        self._advance(Phase.AUDIT)
+                    else:
+                        self._finish_attempt()
         self.assert_invariants()
         return {"accepted": True, "request_id": request_id}
 
@@ -352,6 +398,10 @@ class Game:
 
     def _resolve(self, penalty):
         original = {}
+        previous_pot = self.mission.pot.to_dict()
+        reserve_added = self.reserve
+        self.mission.pot += Tokens(green=reserve_added)
+        self.reserve = 0
         if penalty:
             self.mission.pot += Tokens(red=self.config.rejection_red_tokens)
             self.accounting["penalty"] += self.config.rejection_red_tokens
@@ -375,16 +425,19 @@ class Game:
             "attempt": self.attempt, "mission": self.mission.to_dict(),
             "penalty": penalty, "crew": self.crew, "pledges": self.pledges,
             "original_contributions": original, "wallets_before_income": wallets,
-            "rejections": self.rejections,
+            "rejections": self.rejections, "reserve_added": reserve_added,
         }))
         if self.config.abilities_enabled:
             self.resolutions[-1]["effects"] = effects
         if winner and self.score[winner] == self.config.missions_to_win:
             self._freeze(winner, "four_missions" if self.config.missions_to_win == 4 else "three_missions")
         self._event("attempt_resolved", mission=self.mission.to_dict(),
-                    penalty=penalty, wallets=wallets, score=self.score)
-        if self.crew:
-            self._advance(Phase.AUDIT if self.config.abilities_enabled else Phase.REPORT)
+                    penalty=penalty, previous_pot=previous_pot, reserve_added=reserve_added, score=self.score,
+                    token_totals=objectives.token_totals(self.resolutions))
+        if self.frozen_result or self.attempt >= self.config.max_attempts:
+            self._finish_attempt()
+        elif self.crew:
+            self._advance(Phase.REPORT)
         else:
             self._finish_attempt()
 
@@ -410,7 +463,7 @@ class Game:
         for player in self.players:
             player.wallet += self.config.income
         self.accounting["income"] += self.config.income * 8
-        self._event("income", amount_each=self.config.income, wallets={p.id: p.wallet for p in self.players})
+        self._event("income", amount_each=self.config.income)
         self.chairman = (self.chairman + 1) % 8
         self.attempt += 1
         if self.mission.winner:
@@ -432,14 +485,16 @@ class Game:
         if self.config.abilities_enabled:
             assert all(p.objective.kind != "contrarian" and p.ability != "disabled" for p in self.players)
             if self.config.rules_version == ABILITIES_VERSION:
-                assert {p.ability for p in self.players} == set(abilities.KINDS), "Each ability must appear exactly once"
+                assert len({p.ability for p in self.players}) == len(self.players), "Abilities are dealt without replacement"
         else:
             assert all(p.ability == "disabled" and not p.ability_used for p in self.players)
         assert all(type(p.wallet) is int and p.wallet >= 0 for p in self.players)
         assert all(getattr(self.mission.pot, c) >= 0 for c in COLORS)
         active_pot = self.mission.pot.total if not self.mission.winner else 0
-        actual = sum(p.wallet for p in self.players) + active_pot + self.accounting["removed"]
-        assert actual == self.accounting["initial"] + self.accounting["income"] + self.accounting["penalty"] + self.accounting.get("bonus", 0)
+        actual = sum(p.wallet for p in self.players) + active_pot + self.reserve + self.accounting["removed"]
+        assert 0 <= self.reserve_credit < 10 and self.reserve >= 0
+        assert actual == (self.accounting["initial"] + self.accounting["income"] + self.accounting["penalty"]
+                          + self.accounting.get("bonus", 0) + self.accounting["reserve_created"] - self.accounting["vote_spent"])
         assert sum(self.score.values()) == len(self.completed_missions)
         assert all(0 <= score <= self.config.missions_to_win for score in self.score.values())
         assert len(self.resolutions) == self.attempt - (self.phase not in (Phase.AUDIT, Phase.REPORT, Phase.GAME_OVER))
@@ -460,15 +515,15 @@ class Game:
             "mission_rng": self.mission_rng.getstate(), "mission": self.mission.to_dict(),
             "phase": self.phase.value, "revision": self.revision,
             **{name: getattr(self, name) for name in (
-                "chairman", "attempt", "rejections", "score", "crew", "pledges", "votes",
+                "chairman", "attempt", "rejections", "score", "crew", "pledges", "votes", "reserve", "reserve_credit",
                 "pending", "action_log", "events", "resolutions", "completed_missions",
                 "last_contributions", "frozen_result", "accounting")},
         })
 
     @classmethod
     def from_snapshot(cls, data):
-        if data["schema_version"] not in (1, 2, SCHEMA_VERSION):
-            raise ValueError("Unsupported snapshot schema version")
+        if data["schema_version"] != SCHEMA_VERSION:
+            raise ValueError("This table uses outdated rules. Start a new table.")
         game = cls.__new__(cls)
         data = deepcopy(data)
         game.config = GameConfig(**data.pop("config"))

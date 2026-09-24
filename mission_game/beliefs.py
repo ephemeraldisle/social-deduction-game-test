@@ -40,6 +40,7 @@ class SocialBeliefs:
         self.threshold = 8
         self.last_resolution = None
         self.paid = {"blue": 0, "red": 0}
+        self.public_paid_estimates = {}
         self.associations = {}
         self.accusations = {}
         self.updates = []
@@ -141,6 +142,9 @@ class SocialBeliefs:
             self.side(pid, vector["blue"] / competitive, .35)
             self.note(pid, event, f"Pledged {vector['blue']} Blue and {vector['red']} Red; a weak preference signal.")
 
+    def public_context(self, observation):
+        pass
+
     def observe(self, observation, memory, report_weight=.2, association_weight=.2, accusation_weight=.8):
         self.abilities_enabled = observation["public"]["rules"].get("abilities_enabled", False)
         if self.prior is None:
@@ -150,6 +154,7 @@ class SocialBeliefs:
                                        "credible": 2., "false": 1., "demands": 1., "accepts_exclusion": 3.,
                                        "evidence": []} for p in observation["public"]["players"]}
         self.updates = []
+        self.public_context(observation)
         known = dict(observation["public"].get("public_badges", {}))
         known.update({r["target"]: r["team"] for r in observation["private"].get("receipts", []) if r["type"] == "scout"})
         for pid, team in known.items():
@@ -324,7 +329,7 @@ class SocialBeliefs:
     @classmethod
     def from_snapshot(cls, data):
         model = cls()
-        data = {"abilities_enabled": False, "verified_deposits": {}, "known_teams": {}, **data}
+        data = {"abilities_enabled": False, "verified_deposits": {}, "known_teams": {}, "public_paid_estimates": {}, **data}
         if set(data) != set(vars(model)):
             raise ValueError("Unsupported social belief snapshot")
         model.__dict__.update(deepcopy(data))
@@ -352,4 +357,179 @@ class AllegianceBeliefs(SocialBeliefs):
             # does not certify a payment: objectives can reward off-color play.
             estimate.update(known_team=team, behavioral_blue_preference=behavior,
                             blue_preference=.75 * (team == "blue") + .25 * behavior)
+        return estimate
+
+
+class CooperativeBeliefs(AllegianceBeliefs):
+    """Learn cautiously from outcomes without confusing objections with teams."""
+
+    def public_context(self, observation):
+        badges = observation["public"].get("public_badges", {})
+        for pid, player in self.players.items():
+            player["public_badge"] = badges.get(pid)
+
+    def established_blue(self, pid):
+        player = self.players[pid]
+        direct = self.estimate(pid, direct=True)
+        return (player.get("public_badge") == "blue" or
+                direct["blue_preference"] >= .8 and (player["kept"] >= 4.5 or player.get("public_kept", 0.) >= .5))
+
+    def grounded_objection(self, pid, public=None):
+        belief = self.estimate(pid, direct=True)
+        if belief["pledge_reliability"] < .65 or belief.get("behavioral_blue_preference", 1.) < .45:
+            return True
+        crew, pledges, pot, threshold = self.crew, self.pledges, self.pot, self.threshold
+        if public is not None:
+            crew, pledges = public["crew"], public["pledges"]
+            pot, threshold = public["mission"]["pot"], public["mission"]["threshold"]
+        pledge = pledges.get(pid)
+        if pledge is None:
+            return False
+        advertised = sum(pot.values()) + sum(sum(v.values()) for v in pledges.values())
+        share = ceil(max(0, threshold - sum(pot.values())) / max(1, len(crew)))
+        return pledge["red"] > 0 or (advertised < threshold and pledge["blue"] < share)
+
+    def clean_blue_crew(self, crew, pledges, pot, threshold):
+        return (bool(crew) and all(self.established_blue(pid) and self.estimate(pid)["pledge_reliability"] >= .75
+                                 and self.estimate(pid).get("behavioral_blue_preference", 1.) >= .45 for pid in crew)
+                and not any(v["red"] for v in pledges.values())
+                and pot["blue"] + sum(v["blue"] for v in pledges.values()) >= max(1, pot["red"])
+                and sum(pot.values()) + sum(sum(v.values()) for v in pledges.values()) >= threshold)
+
+    def hostility_evidence(self, event, viewer):
+        from .coordination import objection_target
+        speaker = event["player_id"]
+        if event["approve"] or any(c.get("modifier") == "more" and c.get("player_id") == speaker for c in event["complaints"]):
+            return
+        targets = [objection_target(c, speaker) for c in event["complaints"]]
+        targets = [pid for pid in targets if pid in self.players]
+        unsupported = [pid for pid in targets if self.established_blue(pid) and not self.grounded_objection(pid)]
+        clean_rejection = not targets and self.clean_blue_crew(self.crew, self.pledges, self.pot, self.threshold)
+        if not unsupported and not clean_rejection:
+            return
+        player = self.players[speaker]
+        if event["id"] <= player.get("hostility_event", 0):
+            return
+        player["hostility_event"] = event["id"]
+        player["hostility_count"] = player.get("hostility_count", 0) + 1
+        weight = min(1.5, max(0., 6 - player.get("hostility_weight", 0.))) if player["hostility_count"] >= 2 else 0.
+        player["hostility_weight"] = player.get("hostility_weight", 0.) + weight
+        if speaker != viewer and weight:
+            self.side(speaker, 0., weight)
+        self.note(speaker, event, "Repeated unsupported opposition to established Blue cooperation is evidence of Red intent, not a certified team reveal."
+                  if weight else "Opposed established Blue cooperation without a concrete funding or reliability problem; watch for repetition.")
+
+    def accusation(self, event, weight, viewer=None):
+        from .coordination import objection_target
+        if event["approve"]:
+            return False
+        self.hostility_evidence(event, viewer)
+        speaker = event["player_id"]
+        for complaint in event["complaints"]:
+            target = objection_target(complaint, speaker)
+            if target not in self.players or speaker == viewer:
+                continue
+            key = f"{event['attempt']}:{speaker}:{target}"
+            if key in self.accusations:
+                continue  # Repetition strengthens a voting stance, not proof.
+            source = self.estimate(speaker)
+            confidence = (.5 * source["blue_preference"] + .3 * source["pledge_reliability"]
+                          + .2 * source["report_credibility"])
+            allegation = complaint.get("modifier") == "less" or complaint.get("color") == "red"
+            influence = .3 * weight * confidence if allegation else 0.
+            self.accusations[key] = {"event_id": event["id"], "speaker": speaker, "target": target,
+                                     "influence": influence, "backlash": 0.}
+            if influence:
+                self.side(target, 0., influence, soft=True)
+            self.note(target, event, f"{speaker} objects to {target}'s inclusion; a voting constraint, not verified allegiance.")
+        # Ordinary No votes are ambiguous. Only the repeated, unsupported
+        # opposition evaluated above adds evidence against their speaker.
+        return True
+
+    def resolve(self, event, memory):
+        before, wallets = dict(self.pot), dict(self.wallets)
+        super().resolve(event, memory)
+        if not self.abilities_enabled or event["penalty"]:
+            return
+        delta = {c: event["mission"]["pot"][c] - before[c] for c in COLORS}
+        # Keep uncertain table-wide progress separate from certified receipts.
+        # Discount a generous amount for unknown bonuses/color changes. This
+        # is an estimate, not a catalogue of other players' hidden abilities.
+        slack = 2 + len(self.crew)
+        self.public_paid_estimates[str(event["attempt"])] = {c: max(0, delta[c] - slack) for c in self.paid}
+        self.last_resolution.update(public_delta=delta,
+                                    wallet_losses={pid: max(0, wallets[pid] - event["wallets"][pid]) for pid in self.crew},
+                                    red_evidence={})
+        promised = {c: sum(v[c] for v in self.pledges.values()) for c in COLORS}
+        error = sum(abs(delta[c] - promised[c]) for c in COLORS)
+        # Bonuses, transfers, and recoloring can obscure individual payments.
+        # Aggregate consistency earns limited credit, never a certified receipt.
+        tolerance = 2 + len(self.crew)
+        for pid in self.crew:
+            if pid == memory.viewer:
+                continue
+            spent = max(0, wallets[pid] - event["wallets"][pid])
+            if not spent or not sum(self.pledges.get(pid, {}).values()):
+                continue
+            player = self.players[pid]
+            if error <= tolerance and sum(delta.values()) > 0:
+                player["public_kept"] = min(2., player.get("public_kept", 0.) + .25)
+                self.note(pid, event, "Public crew results broadly fit promises; limited cooperation credit, individual payments remain unknown.")
+            elif error > 2 * tolerance:
+                player["public_broken"] = min(2., player.get("public_broken", 0.) + .15 / len(self.crew))
+                self.note(pid, event, "Crew results differ substantially from promises; responsibility and hidden effects remain uncertain.")
+            competitive = max(0, delta["blue"]) + max(0, delta["red"])
+            if competitive > tolerance:
+                self.side(pid, max(0, delta["blue"]) / competitive, .4 / len(self.crew))
+
+    def paid_estimate(self, color):
+        return max(self.paid[color], sum(attempt[color] for attempt in self.public_paid_estimates.values()))
+
+    def private_evidence(self, observation, memory):
+        super().private_evidence(observation, memory)
+        result = self.last_resolution or {}
+        if "public_delta" not in result:
+            return
+        delta, losses, crew = result["public_delta"], result["wallet_losses"], result["crew"]
+        known = result["known"]
+        for pid in crew:
+            if pid == memory.viewer or not losses[pid]:
+                continue
+            others = [other for other in crew if other != pid]
+            # Ask whether the other spenders could plausibly explain the Red
+            # surge. Allow noise and hidden transfers; never turn it into a
+            # certified deposit or an official team assignment.
+            other_red = sum(known[p]["red"] if p in known else losses[p] for p in others)
+            slack = 2 + len(crew) + (3 if any(p not in known for p in others) else 0)
+            unexplained = max(0, delta["red"] - other_red - slack)
+            weight = 0.
+            if unexplained >= 2:
+                weight = 4 + 6 * min(1, unexplained / max(1, losses[pid]))
+            elif delta["red"] >= 4 and all(self.estimate(p, direct=True)["blue_preference"] >= .9 for p in others):
+                weight = min(3., max(0, delta["red"] - (2 + len(crew))) / 2)
+            previous = result["red_evidence"].get(pid, 0.)
+            if weight > previous:
+                self.side(pid, 0., weight - previous)
+                self.players[pid]["public_red_support"] = self.players[pid].get("public_red_support", 0.) + weight - previous
+                result["red_evidence"][pid] = weight
+                self.note(pid, {"id": result["event_id"]}, "Large Red gains and public spending implicate this player even allowing for hidden effects; strong behavioral evidence, not a role reveal.")
+
+    def reports(self, event, weight):
+        super().reports(event, weight)
+        result = self.last_resolution or {}
+        if result.get("attempt") != event["attempt"] or "public_delta" not in result:
+            return
+        for speaker, claims in event["reports"].items():
+            if speaker in result["known"]:
+                continue
+            if any(c["player_id"] == speaker and c["verb"] == "gave" and c["quantity"] >
+                   max(0, result["public_delta"][c["color"]]) + 4 + len(result["crew"]) for c in claims):
+                self.players[speaker]["false"] += .5
+                self.note(speaker, event, "Self-report is difficult to reconcile with the public color totals; discounted while hidden effects remain possible.")
+
+    def estimate(self, pid, direct=False):
+        estimate = super().estimate(pid, direct)
+        p = self.players[pid]
+        kept, broken = p.get("public_kept", 0.), p.get("public_broken", 0.)
+        estimate["pledge_reliability"] = bounded((p["kept"] + kept) / (p["kept"] + p["broken"] + kept + broken))
         return estimate

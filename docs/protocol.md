@@ -138,11 +138,11 @@ IDs return the same error before and after their hidden submissions.
 | `request_id`, `revision` | The viewer's next request; ID is null if none |
 | `action_spec` | Own action type and public/own budget limits; null if no request |
 | `own_submission_received` | Whether this viewer has submitted to this sealed batch |
-| `public` | Names, wallets, chairman, attempt/rejections, mission/pot, score, crew, revealed pledges, votes, completed missions, public rules and final team result |
+| `public` | Names, chairman, attempt/rejections, mission/pot, score, crew, revealed pledges, votes, completed missions, cumulative token totals, public rules and final team result |
 | `private` | Own team/card text and permitted objective progress, own most recent contribution, own action history, and own final result once the game closes |
 | `history` | Complete public event sequence, including all previous pledges, votes, reports and official results |
 
-In schemas 2 and 3, `private.objective` contains `id` (type), `name`, complete truthful
+In schema 5, `private.objective` contains `id` (type), `name`, complete truthful
 `text`, `desired_winner`, and `progress`. Progress carries a label/text, visibility,
 nullable value/target, and nullable `condition_met`. This is personal-condition
 progress, not a prediction of overall victory. Wallets are evaluated after the
@@ -150,10 +150,14 @@ terminal spending and before income. Reliable Partner and Passenger derive
 counts from the holder’s entire original history, including before receiving a
 card. Reports are never input to these predicates.
 
-Opposition Patron uses `visibility: "hidden_global"`, null `value` and
-`condition_met`, and a private `own_paid` count. The global count is never
-exposed by ordinary observations, even at game end. Only the final personal
-win/loss is returned. No observation contains a deck list or card instance ID.
+Opposition Patron and Green Machine use `visibility: "public"`, an exact
+table-wide `value`, target 20, Boolean `condition_met`, and a separate private
+`own_paid` count. `public.token_totals` contains `paid` (cumulative original paid
+Blue/Red/Green deposits) and `green_added` (all Green additions, including bonuses,
+reserves, and recoloring). Each `attempt_resolved` event records those totals at
+that moment. Current sealed submissions and individual deposits are never
+included before resolution. Reports cannot change the counters. No observation
+contains a deck list or card instance ID.
 Other players’ objective assignments are absent from public events and fields.
 
 Rules `0.1-objectives-dev.3` and `0.1-common-rules-dev.3` always assign five Blue
@@ -392,15 +396,15 @@ Snapshots persist uses, receipts, sealed actions, and bonus accounting; designer
 resolution records include effects. Ordinary results reveal only final totals.
 
 
-## Paced live web play and vote revenue
+## Paced live web play and proposal income
 
-The current abilities profile publishes `public.rules.vote_income: 1` and
-`missions_to_win: 4`. After the eighth ballot, a public `vote_income` event
-contains `amount_each` and the resulting `wallets`, before the approval/rejection
-branch. This awards all eight players revenue on both outcomes, including the
-eighth rejection. End-of-attempt `income` remains a separate event. Terminal
+The current abilities profile publishes `public.rules.proposal_income: 1` and
+`missions_to_win: 4`. Accepting a crew selection pays all eight players before
+pledging. The public `proposal_income` event contains `amount_each`, never wallet
+balances. Every newly selected crew pays once; retries do not pay again. There
+is no income after the eighth ballot. End-of-attempt `income` remains separate. Terminal
 reason is `four_missions`; Close Race uses the target-minus-one opponent score.
-Earlier profiles and their snapshot representations remain supported unchanged.
+Schema 4 and earlier saves are outdated and rejected; no migration is performed.
 
 The browser creates tables with `{"human_seat":0,"paced":true}`, resumes with
 `{"paced":true}`, and adds `"paced":true` to action payloads. These operations

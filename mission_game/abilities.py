@@ -8,13 +8,14 @@ from copy import deepcopy
 
 from .types import COLORS, Phase, Tokens
 
-KINDS = ("thief", "stowaway", "auditor", "switcher", "standard_bearer", "scout", "recolorer", "echo")
+KINDS = ("thief", "stowaway", "auditor", "switcher", "standard_bearer", "scout", "recolorer", "echo", "green_thumb")
 ONCE = ("thief", "switcher", "scout")
 TEXT = {
     "disabled": "Abilities are disabled at this table.",
+    "green_thumb": "Every Yes or No vote you cast automatically gains 5 free influence tokens, on top of any tokens you spend. The bonus counts toward extra votes and tiebreakers. It costs no wallet tokens and creates no Green reserves. No activation is needed.",
     "thief": "Once per game, before an attempt resolves, request 1–3 tokens from another wallet or a Blue/Red/Green vector totaling 1–3 from the mission. Act on or off crew, including penalties. After deposits and bonuses, transfer only what remains (each mission color clips separately) to your wallet. You privately learn the actual transfer. A valid attempt consumes your use even if nothing remains. Stolen tokens cannot fund a deposit committed this attempt.",
     "stowaway": "Each attempt when off crew, optionally pay 1 wallet token to deposit 1 Blue, Red, or Green token. You need the token when committing. Available on penalty attempts, when nobody is on crew. This is an original paid deposit; it grants no report or crew credit.",
-    "auditor": "After each approved attempt's public result and before reports, optionally inspect any crew member (including yourself). Privately learn their exact original paid Blue/Red/Green deposit, excluding bonuses, theft, and recoloring. You may inspect while off crew. No audit on penalty attempts.",
+    "auditor": "After each approved attempt's crew reports are revealed, optionally inspect any crew member (including yourself). Privately learn their exact original paid Blue/Red/Green deposit, excluding bonuses, theft, and recoloring. You may inspect while off crew. No audit on penalty attempts or after the game ends.",
     "switcher": "Once per game, before a proposal, optionally exchange objectives with another player without consent. Swaps resolve clockwise from the chairman. Each affected player privately learns their final objective, without an automatic identification of the initiator. Teams, abilities, wallets, uses, and seat histories stay put. Receiving the same type still spends your use; all prior history counts for the new card.",
     "standard_bearer": "Your true Blue or Red allegiance has an official public badge throughout the game. Your objective and ability card remain private. This gives no extra tokens, immunity, or guarantee of cooperative intent. No action is needed.",
     "scout": "Once per game, before a proposal and after objective swaps, optionally inspect another player's true team. Only you receive the truthful result; the target is not notified. Objectives and abilities are not revealed. Inspecting a public badge still spends your use.",
@@ -27,6 +28,10 @@ def private_card(player):
     return {"id": player.ability, "name": player.ability.replace("_", " ").title(),
             "text": TEXT[player.ability],
             "uses_remaining": int(not player.ability_used) if player.ability in ONCE else None}
+
+
+def vote_bonus(player):
+    return 5 if player.ability == "green_thumb" else 0
 
 
 def choice_spec(game, player):

@@ -82,6 +82,34 @@ class Session:
     def save(self, path):
         write_json(path, self.snapshot())
 
+    def upgrade_social_policies(self):
+        """Opt in to current bots without changing any game actions or cards.
+
+        Relearn from each seat's own evidence rather than carrying forward old
+        interpretations of complaints. Preserve randomness and private memories.
+        Callers are responsible for backing up the session before saving it.
+        """
+        from .social_policy import SocialPolicy, VERSION
+        upgraded = []
+        for pid, previous in self.policies.items():
+            if not previous.version.startswith("social.") or previous.version == VERSION:
+                continue
+            policy = SocialPolicy(traits=previous.traits, settings=previous.settings)
+            policy.rng.setstate(previous.rng.getstate())
+            policy.memory = deepcopy(previous.memory)
+            observation = self.game.observe(pid)
+            policy.memory.observe(observation)
+            policy.beliefs.observe(observation, policy.memory,
+                                  report_weight=policy.settings.report_weight * (1 - .75 * policy.traits.skepticism),
+                                  association_weight=policy.settings.association_weight,
+                                  accusation_weight=policy.settings.accusation_weight)
+            if hasattr(previous, "effects"):
+                policy.effects = deepcopy(previous.effects)
+            policy.effects.observe(observation)
+            self.policies[pid] = policy
+            upgraded.append(pid)
+        return upgraded
+
     @classmethod
     def load(cls, path):
         data = json.loads(Path(path).read_text())

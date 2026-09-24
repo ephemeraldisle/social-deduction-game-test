@@ -27,6 +27,23 @@ def session_path(value):
     return path / "session.json" if path.is_dir() or not path.suffix else path
 
 
+def upgrade_bots(path):
+    from .social_policy import VERSION
+    original = path.read_bytes()
+    session = Session.load(path)
+    upgraded = session.upgrade_social_policies()
+    if not upgraded:
+        print("No social bots need upgrading.")
+        return
+    backup = path.with_name(f"{path.stem}.before-{VERSION}{path.suffix}")
+    if path.read_bytes() != original:
+        raise ValueError("The session changed during upgrade; pause play and try again")
+    with backup.open("xb") as output:
+        output.write(original)
+    session.save(path)
+    print(f"Upgraded {len(upgraded)} bots to {VERSION}. Past actions are unchanged. Backup: {backup}")
+
+
 def human_loop(session, path):
     if session.human_id is None:
         raise ValueError("This session has no human seat; use replay to inspect it")
@@ -69,7 +86,7 @@ def json_loop(session, path, mission_checkpoints=False):
         if not mission_checkpoints:
             return
         completed = len(session.game.completed_missions)
-        # Wait for closing inspections/reports. Capture this boundary before
+        # Wait for reports and inspections. Capture this boundary before
         # any subsequent preparation or proposal, including terminal missions.
         if completed > checkpointed and (session.game.phase == Phase.GAME_OVER
                                         or session.game.mission.number > completed):
@@ -206,12 +223,14 @@ def main(argv=None):
             sub.add_argument("--session", help="Private session JSON file or directory")
             if command == "agent":
                 sub.add_argument("--mission-checkpoints", action="store_true",
-                                 help="Emit seat observations after each mission's closing reports")
+                                 help="Emit seat observations after each mission's reports and inspections")
         else:
             sub.add_argument("--games", type=int, default=100)
             sub.add_argument("--out", default="runs/smoke")
     resume = commands.add_parser("resume")
     resume.add_argument("session")
+    upgrade = commands.add_parser("upgrade-bots", help="Upgrade saved social bots, preserving a backup and all past moves")
+    upgrade.add_argument("session")
     replay = commands.add_parser("replay")
     replay.add_argument("session")
     visibility = replay.add_mutually_exclusive_group(required=True)
@@ -261,6 +280,8 @@ def main(argv=None):
         elif args.command == "resume":
             path = session_path(args.session)
             human_loop(Session.load(path), path)
+        elif args.command == "upgrade-bots":
+            upgrade_bots(session_path(args.session))
         else:
             path = session_path(args.session) if args.session else None
             if path and path.exists():

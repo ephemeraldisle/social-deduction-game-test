@@ -51,7 +51,8 @@ class ObjectiveStrategyTests(unittest.TestCase):
             action = policy.choose_action(view)
             self.assertEqual(set(action["crew"]), {"p0", "p1", "p2"})
             self.assertEqual(policy.last_decision["details"]["planned_deposit"], tokens())
-            self.assertGreaterEqual(sum(policy.last_decision["details"]["forecast_pot"].values()), 10)
+            outcomes = policy.last_decision["details"]["outcome_likelihoods"]
+            self.assertGreater(outcomes["blue"] + outcomes["red"], .5)
 
     def test_spendthrift_seeks_a_seat_and_spends_even_early_without_selfish_trait(self):
         view = off_crew("spendthrift")
@@ -180,12 +181,12 @@ class ObjectiveStrategyTests(unittest.TestCase):
 
     def test_close_race_switches_back_before_giving_opponent_a_third_point(self):
         for team, opposing in (("blue", "red"), ("red", "blue")):
-            view = table("close_race")
+            view = table("close_race", wallet=12)
             view["private"]["team"] = team
             view["public"].update(crew=["p0", "p1", "p2"],
                                   pledges={p: tokens() for p in ("p0", "p1", "p2")})
             for other_score, desired in ((0, opposing), (1, opposing), (2, team)):
-                view["public"]["score"] = {team: 1, opposing: other_score}
+                view["public"]["score"] = {team: 2, opposing: other_score}
                 paid = choose(view)["tokens"]
                 self.assertGreater(paid[desired], paid["red" if desired == "blue" else "blue"])
 

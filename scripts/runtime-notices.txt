@@ -1,0 +1,11 @@
+The unmodified browser runtime is Pyodide 314.0.7 (MPL-2.0):
+https://github.com/pyodide/pyodide/tree/314.0.7
+See PYODIDE-LICENSE.txt. Its corresponding source is available at that URL.
+
+It includes CPython 3.14.2:
+https://github.com/python/cpython/tree/v3.14.2
+See PYTHON-LICENSE.txt for Python's license and acknowledgments.
+
+Runtime distribution:
+https://cdn.jsdelivr.net/pyodide/v314.0.7/full/
+The site build verifies file hashes listed in scripts/pyodide-runtime.json.

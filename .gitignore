@@ -4,3 +4,10 @@ __pycache__/
 .venv/
 build/
 dist/
+
+# Local saves, simulations, model transcripts, and archived diagnostics.
+# Curated public replays belong in examples/ instead.
+/runs/
+/docs/reviews/
+
+.DS_Store

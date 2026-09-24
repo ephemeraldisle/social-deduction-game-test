@@ -1,20 +1,25 @@
 # Hidden abilities: implemented rules and limits
 
-New sessions use `0.1-abilities-dev.3` (schema 3) and a 13-card objective deck:
+New sessions use `0.1-abilities-dev.5` (schema 5) and a 14-card objective deck:
 six Loyalists, one of each other objective except Contrarian. Contrarian is
 currently disabled. The previous objectives and common-rules profiles remain
-available for controlled comparisons; existing supported saves keep their rules.
-No new objective types were added. Every player receives one token after each
-full vote (pass or fail), before contributions or penalties. Continuing-attempt
-income remains. First to four wins; Close Race is a 4–3 finish. The preceding
-`0.1-abilities-dev.1` profile retains its first-to-three rules and has no vote revenue;
-`0.1-abilities-dev.2` retains four wins, vote revenue, and its original deal rules.
+available for controlled comparisons with the new token rules. Old saves are incompatible.
+Green Machine requires a team win and 20 Green tokens added across the whole
+table, including deposits, reserves, bonuses, and recoloring into Green.
+Later theft or recoloring away from Green does not erase prior additions.
+Green Machine and Opposition Patron show exact table-wide progress out of 20
+on their cards. Public history records cumulative original paid-color totals
+and all Green additions after each resolution, without identifying individual deposits.
+Every player receives one token when each crew is selected, before pledging.
+No income arrives after voting. Continuing-attempt income remains separate.
+First to four wins; Close Race is a 4–3 finish. Start a new table for these rules;
+older saves are not migrated.
 
-New deals shuffle one copy of each of the eight abilities and give one to each
-seat. Duplicate abilities are rejected in new-version snapshots; older versions
+New deals shuffle one copy of each of the nine abilities and give eight to the
+eight seats, leaving one out at random. Duplicate abilities are rejected in new-version snapshots; older versions
 retain their original assignments, including duplicates. Ability randomness does
 not change teams, objectives, missions, or bot
-personality. Only the holder's private card and controls disclose its rules.
+personality. Cards are private; public badges and vote bonuses remain visible.
 
 New web/CLI tables load `configs/development_abilities.json`, currently thresholds
 15–30 and crews of 2–5. Web creation rereads the file for each table. Current
@@ -25,20 +30,22 @@ retain their embedded ranges, and older versions retain their validation limits.
 | --- | --- |
 | Thief | Once per game, request 1–3 tokens from another wallet or the mission; clip to availability after all deposits and bonuses. A valid empty attempt still consumes the use. Own actual transfer is privately reported. |
 | Stowaway | When off crew, pay one token for one chosen-color deposit, including on penalties. It counts as a paid deposit, but does not confer crew/report privileges. |
-| Auditor | After an approved result, inspect one crew member's original deposit before reports, including in the closing phase. |
+| Auditor | After crew reports are revealed, optionally inspect one crew member's original deposit, if the game continues. |
 | Switcher | Once per game, exchange objectives before a proposal. Sequential swaps use current cards; all affected seats learn only their final card and permitted progress. Seat histories stay with their players. |
 | Standard Bearer | True allegiance has an official public badge; objective and ability card stay private. |
 | Scout | Once per game, learn another seat's true team after swaps and before crew selection. The target receives no notification. |
 | Recolorer | Each attempt, commit two different colors; after theft change one available mission token, including old tokens. No source token means no effect. |
 | Echo | An approved-crew original payment of at least two in exactly one color creates one free matching token. No cost, paid-history credit, or pledge mismatch. |
+| Green Thumb | Every Yes or No ballot automatically receives 5 free influence, combined with spending for weighted votes and tiebreakers. No wallet cost, reserve generation, or activation. |
 
-The authoritative sequence is paid deposits/penalty and Stowaway deposits, Echo
+The authoritative sequence is accumulated Green reserves, paid deposits/penalty and Stowaway deposits, Echo
 bonuses, thieves in initiative order, recolorers in initiative order, scoring,
-objective history and terminal freeze, public result, private audits, reports,
-then income if continuing. Initiative begins with the final proposer; preparation
+objective history and terminal freeze, public result, then reports, private audits,
+and income only if continuing. Initiative begins with the final proposer; preparation
 begins with that proposal's chairman. All modifying choices use the same
 pre-result information. Penalties allow hidden modifying actions but skip audits
-and reports. Closing audits cannot alter frozen wallets, cards, or outcomes.
+and reports. A final resolution goes directly to game over and publishes every
+player's personal win/loss outcome; wallet balances remain private.
 
 Private preparation uses two fixed all-seat cover batches: swaps then scouting.
 Hidden commitments and approved audits also have fixed cover slots. Sessions
@@ -48,75 +55,20 @@ observation or revision. No public event identifies ability users or reveals a
 pre-modification deposit total. Snapshots and designer replay retain receipts,
 use counters, sealed choices, and ordered effects for verification.
 
-Web and terminal adapters include guided targets, sources, quantities, colors,
-and passing. The private panel shows remaining once-per-game uses and receipt
-history. Ordinary replays expose only a seat's permitted information; designer
+Web abilities use a single dropdown to choose an action or pass: a player for
+Scout, Switcher, and Auditor; a one-token color for Stowaway; a color change for
+Recolorer; or a source for Thief. Thief then asks for a quantity (or quantities
+by color for mission tokens). The submit button names the selected action.
+Passive abilities are marked automatic, with an Echo bonus preview when a
+contribution qualifies. The private panel shows remaining once-per-game uses
+and receipt history. The terminal also guides targets, sources, quantities,
+colors, and passing. Ordinary replays expose only a seat's permitted information; designer
 inspection additionally shows hidden cards and effects.
 
 ## Scripted opponents
 
-New games default to `social.11`. Each policy receives only its own observation.
-Saved `social.7`, `social.8`, `social.9`, and `social.10` controllers restore their previous decision
-algorithm; a browser refresh does not upgrade an existing game's opponents.
-`straightforward.3` and `random-legal.3` remain simpler diagnostic comparisons.
-Random chooses legal activations and passes; Straightforward uses independent
-ability heuristics. The joint planner described below is specific to Social.
-
-Social compares its own deposit and ability together when selecting a crew,
-pledging, voting, and committing. Each candidate ability is fixed across possible
-opponent payments, then evaluated after deposits, bonuses, transfers, and color
-changes. This avoids choosing a different secret action for each possible future.
-Its private plan is separate from the public promise used to predict other votes.
-The final rejected proposal also considers abilities during the penalty attempt.
-Since `social.10`, the planner uses the table’s winning score and forecasts the pending vote revenue
-for deposits and final wallets. Pledges remain limited to current funds; rejected
-proposals also award revenue. Paid-history inference excludes both income sources.
-
-`social.11` separates confirmed allegiance from uncertain cooperation. Its
-cooperation estimate gives a verified team 75% weight and behavioral evidence
-25%; this is a heuristic, not a calibrated payment probability. Repeated Blue
-pledges earn no allegiance or reliability credit. Unproven promises are
-discounted by inferred color preference; independently verified kept promises
-gradually earn more weight in payment forecasts.
-
-Blue crew selection first minimizes known Red members (public badges or private
-Scout results), then compares funding and private objectives. A covert Red
-chairman likewise avoids public Red badges; an exposed Red chairman can openly
-choose allies. If all legal crews require known Red members, choose the fewest.
-Bots normally object to avoidable known Red seats even for Close Race or
-Opposition Patron, naming the player in their complaint. This objection relaxes
-after five rejections or a forecast personal win of at least 95%. Other voters'
-estimated support drops for public Red crews; private inspections do not create
-that public objection. Cast ballots remain exact. These are deliberate social
-heuristics, not exhaustive searches for exceptions or proven optimal play.
-
-| Ability | Social planning |
-| --- | --- |
-| Thief | Compare passing, mission requests totaling 1–3, and wallet amounts 1–3 from three promising public targets. Clip transfers after predicted spending; account for final wallet and funding. Preserve the limited use when no concrete benefit outweighs its heuristic cost. |
-| Stowaway | Compare passing and each color off crew. Count the paid token toward spending/wallet goals and funding, without granting Passenger or Reliable Partner crew credit. |
-| Recolorer | Compare passing and all six color changes, including Blue ties and effects on old mission tokens. |
-| Echo | Include the free token when choosing pure deposits and testing funding; keep original payment and pledge credit separate. |
-| Scout | Prefer relevant unknown allegiances, considering wallet, chairman, and uncertainty; retain the inspection as certain team evidence. |
-| Auditor | Prefer substantial, unverified crew pledges; use original-payment receipts to update trust and future forecasts. |
-| Switcher | Keep a met or readily achievable objective; consider an unknown replacement when the current condition is difficult near the finish. Never inspect the target's card. |
-| Standard Bearer | Recognize official allegiance badges, while keeping allegiance separate from inferred cooperation and objective incentives. The badge itself is automatic. |
-
-Audit and own-deposit receipts verify original payments. With abilities enabled,
-public pot and wallet differences do **not** produce contribution bounds, liar
-verdicts, or exact paid-history totals. Opposition Patron's tracked total is a
-verified lower bound from available receipts; prospective payments are estimates.
-Reports of removals or off-crew deposits are not automatically judged false.
-
-Social also records unexplained color changes when **every crew payment is
-independently known**. Two matching residuals with the same crew produce a
-tentative extra forecast scenario, with confidence capped at 40% and a no-effect
-alternative retained. Own known bonuses/transfers are removed first; ambiguous
-own recoloring is excluded. Reports alone cannot train these hypotheses. The
-inference identifies a recurring net effect, never an opponent's ability card.
-Evidence and hypotheses persist across saves and appear in designer decisions.
-
-This remains a short-horizon heuristic search, not optimal play or arbitrary
-rule discovery. Unknown interactions, opponent wallet theft, and future swaps
-are not exhaustively modeled. Residual patterns can have competing explanations
-and need not recur. The implementation does not establish balanced win rates or
-benchmark validity; adding or re-enabling objectives should follow playtesting.
+Current games use `social.15`, `straightforward.4`, or `random-legal.4`.
+Wallets are private; no controller has another player’s exact funds or a public
+balance-change oracle for their contributions. Old exact-payment forecasts are
+bypassed. Current ability choices use private instructions and small heuristics;
+see [bot notes](bots.md) for the current strategy and limitations.

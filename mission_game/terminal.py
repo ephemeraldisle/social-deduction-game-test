@@ -8,6 +8,8 @@ class LeaveGame(Exception):
 
 
 def vector_text(vector):
+    if type(vector) is int:
+        return f"{vector} tokens"
     return ", ".join(f"{n} {c.title()}" for c, n in vector.items() if n) or "0 tokens"
 
 
@@ -21,23 +23,31 @@ def event_text(event):
     if kind == "vote":
         claims = [" ".join(str(claim[k]) for k in ("modifier", "player_id", "color") if claim.get(k))
                   for claim in event["complaints"]]
-        return prefix + f"{event['player_id']} voted {'Yes' if event['approve'] else 'No'}" + (f"; complaints: {'; '.join(claims)}" if claims else "")
+        bonus = f" (+{event['bonus']} bonus influence)" if event.get('bonus') else ""
+        return prefix + f"{event['player_id']} voted {'Yes' if event['approve'] else 'No'}, spending {event.get('influence', 0)} tokens" + bonus + (f"; complaints: {'; '.join(claims)}" if claims else "")
     if kind == "attempt_resolved":
         mission = event["mission"]
         result = f"{mission['winner'].title()} wins the mission" if mission["winner"] else "mission remains open"
         source = "rejection penalty" if event["penalty"] else "approved crew"
-        return prefix + f"OFFICIAL RESULT ({source}): {vector_text(mission['pot'])}; {result}."
+        totals = event.get('token_totals')
+        tracker = (f" Table totals: paid {vector_text(totals['paid'])}; {totals['green_added']} Green added."
+                   if totals else "")
+        return prefix + f"OFFICIAL RESULT ({source}): {vector_text(mission['pot'])}; {result}." + tracker
     if kind == "reports_revealed":
         lines = [f"{speaker} claims {s['player_id']} {s['verb']} {s['quantity']} {s['color'].title()}"
                  for speaker, statements in event["reports"].items() for s in statements]
         return prefix + "Player reports: " + ("; ".join(lines) or "everyone passed")
-    if kind == "vote_income":
-        return prefix + f"OFFICIAL VOTE REVENUE: everyone receives {event['amount_each']} token, pass or fail."
+    if kind == "proposal_income":
+        return prefix + f"OFFICIAL: everyone receives {event['amount_each']} token before pledging."
     if kind == "income":
         return prefix + f"OFFICIAL: everyone receives {event['amount_each']} token."
     if kind == "mission_drawn":
         mission = event["mission"]
         return prefix + f"Mission {mission['number']}: threshold {mission['threshold']}, crew {mission['crew_size']}."
+    if kind in ("proposal_rejected", "proposal_approved") and "tally" in event:
+        tally = event["tally"]
+        return prefix + ("Crew approved" if kind == "proposal_approved" else "Crew rejected") + ": " + "; ".join(
+            f"{side.title()} {tally[side]['votes']} votes + {tally[side]['tokens']} tiebreak tokens" for side in ("yes", "no"))
     if kind == "proposal_rejected":
         return prefix + f"Proposal rejected ({event['rejections']} of 8)."
     if kind == "proposal_approved":
@@ -57,7 +67,8 @@ def show(observation, after_event=0):
     print(f"\nMission {mission['number']} | Attempt {public['attempt']} | {observation['phase']}"
           f" | Chairman {public['chairman']} | Blue {public['score']['blue']} – Red {public['score']['red']}")
     print(f"Pot: {vector_text(mission['pot'])} / {mission['threshold']}; crew size {mission['crew_size']}")
-    print("Wallets: " + " | ".join(f"{p['id']} {p['name']}: {p['wallet']}" for p in public["players"]))
+    print(f"Your private wallet: {private['wallet']} tokens. Other balances are hidden.")
+    print(f"Green reserve: {public['reserve']} (added at resolution).")
     print(f"PRIVATE ({observation['viewer']}): {private['team'].title()}. {private['objective']['text']}")
     if "progress" in private["objective"]:
         print(private["objective"]["progress"]["text"])
@@ -72,6 +83,10 @@ def show(observation, after_event=0):
         receipt = private["last_contribution"]
         print(f"Your original deposit on attempt {receipt['attempt']}: {vector_text(receipt['tokens'])}.")
     if "result" in private:
+        print("Final results:")
+        for player in public["players"]:
+            won = public["result"]["players"][player["id"]]["won"]
+            print(f"  {player['name']}: {'WON' if won else 'DID NOT WIN'}")
         result = private["result"]
         print(f"Your result: {'WON' if result['won'] else 'DID NOT WIN'}; final wallet {result['wallet']}.")
         if "text" in result:
@@ -178,7 +193,9 @@ def choose_action(observation):
     if kind == "select_crew":
         seats = ask(f"Choose {spec['crew_size']} seats (e.g. 0 2 5): ").split()
         return {"type": kind, "crew": [seat if seat.startswith("p") else f"p{seat}" for seat in seats]}
-    if kind in ("pledge", "contribute"):
+    if kind == "pledge":
+        return {"type": kind, "quantity": int(ask(f"Pledge quantity (assumed Blue; budget {spec['max_total']}): "))}
+    if kind == "contribute":
         values = ask(f"{'Pledge' if kind == 'pledge' else 'Secret deposit'} Blue Red Green (e.g. 2 0 1; budget {spec['max_total']}): ").split()
         if len(values) != 3:
             raise ValueError("Enter three nonnegative integers: Blue Red Green")
@@ -191,8 +208,18 @@ def choose_action(observation):
         if response not in ("y", "yes", "n", "no"):
             raise ValueError("Enter yes or no")
         approve = response in ("y", "yes")
-        complaints = [] if approve else parse_complaints(ask("Explain your No vote with one complaint (e.g. less p2 or more blue): "))
-        return {"type": kind, "approve": approve, "complaints": complaints}
+        complaints = []
+        if not approve:
+            last_no = next((r["action"] for r in reversed(observation["private"]["submissions"])
+                            if r["action"]["type"] == "vote" and not r["action"]["approve"]), None)
+            previous = last_no["complaints"] if last_no else None
+            default = " ".join(str(v) for v in previous[0].values() if v) if previous else ""
+            response = ask(f"Explain your No vote (e.g. more p0, less red; Enter uses '{default}'): ")
+            complaints = previous if not response and previous else parse_complaints(response)
+        if spec.get('vote_bonus'):
+            print(f"Green Thumb adds {spec['vote_bonus']} free influence to your vote.")
+        influence = int(ask(f"Tokens to spend on this vote (0–{spec['max_influence']}; Enter = 0): ") or 0)
+        return {"type": kind, "approve": approve, "influence": influence, "complaints": complaints}
     if kind == "report":
         default = truthful_statements(observation) if spec["min_statements"] else []
         print("Reports are player claims and may be false. Use: p0 gave 2 blue; p1 took 1 red")

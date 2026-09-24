@@ -1,0 +1,17 @@
+[
+  {
+    "file": "astra-01.json",
+    "title": "Astra \u00b7 Playthrough 1",
+    "description": "Follow Astra as Jamie: recorded decisions and team predictions after each mission. Turn on Reveal all to explore the reasoning."
+  },
+  {
+    "file": "astra-02.json",
+    "title": "Astra \u00b7 Playthrough 2",
+    "description": "Follow Astra as Casey: recorded decisions and team predictions after each mission. Turn on Reveal all to explore the reasoning."
+  },
+  {
+    "file": "astra-03.json",
+    "title": "Astra \u00b7 Playthrough 3",
+    "description": "Follow Astra as Sasha: recorded decisions and team predictions after each mission. Turn on Reveal all to explore the reasoning."
+  }
+]

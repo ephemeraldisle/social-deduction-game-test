@@ -7,6 +7,21 @@ COLORS = ("blue", "red", "green")
 MAX_QUANTITY = 2**31 - 1
 
 
+def vote_tally(votes):
+    """Pool spent and bonus influence; whole tens add votes, leftovers break ties."""
+    result = {}
+    for side, approve in (("yes", True), ("no", False)):
+        ballots = [v for v in votes if v["approve"] == approve]
+        spent = sum(v.get("influence", 0) for v in ballots)
+        bonus = sum(v.get("bonus", 0) for v in ballots)
+        extra, remainder = divmod(spent + bonus, 10)
+        result[side] = {"ballots": len(ballots), "votes": len(ballots) + extra,
+                        "tokens": remainder, "spent": spent, "bonus": bonus}
+    result["approved"] = ((result["yes"]["votes"], result["yes"]["tokens"])
+                          > (result["no"]["votes"], result["no"]["tokens"]))
+    return result
+
+
 class Phase(StrEnum):
     PREPARE_SWAP = "prepare_swap"
     PREPARE_SCOUT = "prepare_scout"
@@ -25,6 +40,7 @@ class Objective(StrEnum):
     SPENDTHRIFT = "spendthrift"
     EXACT_CHANGE = "exact_change"
     OPPOSITION_PATRON = "opposition_patron"
+    GREEN_MACHINE = "green_machine"
     CLOSE_RACE = "close_race"
     RELIABLE_PARTNER = "reliable_partner"
     PASSENGER = "passenger"

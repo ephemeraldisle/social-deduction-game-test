@@ -10,7 +10,7 @@ COMMON_VERSION = "0.1-common-rules-dev.3"
 OBJECTIVES_VERSION = "0.1-objectives-dev.4"
 LEGACY_ABILITIES_VERSION = "0.1-abilities-dev.1"
 REVENUE_ABILITIES_VERSION = "0.1-abilities-dev.2"
-ABILITIES_VERSION = "0.1-abilities-dev.3"
+ABILITIES_VERSION = "0.1-abilities-dev.5"
 REVENUE_VERSIONS = (REVENUE_ABILITIES_VERSION, ABILITIES_VERSION)
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "configs" / "development_abilities.json"
 DEFAULT_OBJECTIVE_DECK = ("loyalist",) * 6 + tuple(
@@ -24,7 +24,7 @@ class GameConfig:
     players: int = 8
     starting_wallet: int = 5
     income: int = 1
-    vote_income: int = 0
+    proposal_income: int = 0
     blue_players: int = 5
     threshold_min: int = 8
     threshold_max: int = 12
@@ -46,7 +46,7 @@ class GameConfig:
             "starting_wallet": 5, "income": 1, "approval_votes": 5,
             "rejection_limit": 8, "rejection_red_tokens": 5,
             "missions_to_win": 4 if self.rules_version in REVENUE_VERSIONS else 3,
-            "vote_income": 1 if self.rules_version in REVENUE_VERSIONS else 0,
+            "proposal_income": 1 if self.rules_version in REVENUE_VERSIONS else 0,
         }
         for key, expected in fixed.items():
             actual = getattr(self, key)
@@ -85,7 +85,7 @@ class GameConfig:
     def to_dict(self):
         data = asdict(self)
         if self.rules_version not in REVENUE_VERSIONS:
-            data.pop("vote_income")  # Preserve historical snapshot representation.
+            data.pop("proposal_income")
         if self.objective_mode == "all_loyalist":
             data.pop("objective_deck")  # Preserve version-1 snapshot representation.
         else:
@@ -95,7 +95,7 @@ class GameConfig:
     @classmethod
     def abilities(cls, **kwargs):
         return cls(rules_version=ABILITIES_VERSION, mode="development_abilities",
-                   abilities_enabled=True, **{"missions_to_win": 4, "vote_income": 1, **kwargs})
+                   abilities_enabled=True, **{"missions_to_win": 4, "proposal_income": 1, **kwargs})
 
     @classmethod
     def common_rules(cls, **kwargs):

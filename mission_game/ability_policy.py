@@ -3,6 +3,22 @@
 from .types import COLORS, Tokens
 
 
+def remaining_green(observation):
+    """Green Machine target from the official resolved table-wide counter."""
+    private, public = observation["private"], observation["public"]
+    if private["objective"]["id"] != "green_machine":
+        return 0
+    progress = private["objective"].get("progress", {})
+    if progress.get("value") is not None:
+        return max(0, 20 - progress["value"] - public.get("reserve", 0))
+    known = progress.get("own_paid", 0)
+    known += sum(r.get("amount", 1) for r in private.get("receipts", [])
+                 if r["type"] == "echo" and r["color"] == "green")
+    visible = sum(max(e.get("reserve_added", 0), e["mission"]["pot"]["green"] - e["previous_pot"]["green"])
+                  for e in observation["history"] if e["type"] == "attempt_resolved")
+    return max(0, 20 - max(known, visible) - public.get("reserve", 0))
+
+
 def choose_ability(observation, rng, desired=None, random=False):
     spec = observation["action_spec"].get("ability")
     if not spec:
@@ -28,23 +44,27 @@ def choose_ability(observation, rng, desired=None, random=False):
                            or objective.get("progress", {}).get("condition_met") is True):
             return None
         return {"target": rng.choice(spec["targets"])}
-    wallet = next(p["wallet"] for p in public["players"] if p["id"] == me)
+    wallet = private["wallet"]
     objective = private["objective"]["id"]
     if kind == "stowaway":
         if not random and ((objective == "saver" and wallet <= 10) or (objective == "exact_change" and wallet <= 7)):
             return None
-        return {"color": rng.choice(COLORS) if random else desired}
+        color = "green" if remaining_green(observation) else desired
+        return {"color": rng.choice(COLORS) if random else color}
     pot = dict(public["mission"]["pot"])
     if public["rejections"] == public["rules"]["rejection_limit"]:
         pot["red"] += public["rules"]["rejection_red_tokens"]
     else:
-        for pledge in public["pledges"].values():
-            for color in COLORS:
-                pot[color] += pledge[color]
+        pot["blue"] += sum(public["pledges"].values())
+    pot["green"] += public.get("reserve", 0)
     if kind == "recolorer":
         if random:
             source, destination = rng.sample(COLORS, 2)
             return {"from": source, "to": destination}
+        if remaining_green(observation):
+            source = other if pot[other] else desired if pot[desired] > 1 else None
+            if source:
+                return {"from": source, "to": "green"}
         source = other if pot[other] else "green" if pot["green"] else None
         return {"from": source, "to": desired} if source else None
     if kind == "thief":
@@ -57,9 +77,8 @@ def choose_ability(observation, rng, desired=None, random=False):
         if pot[other] and (max(public["score"].values()) >= 2 or pot[other] >= pot[desired]):
             return {"source": "mission", "tokens": Tokens(**{other: min(3, pot[other])}).to_dict()}
         if objective in ("saver", "exact_change") and wallet < (10 if objective == "saver" else 7):
-            target = max((p for p in public["players"] if p["id"] in spec["targets"]), key=lambda p: p["wallet"])
-            if target["wallet"]:
-                return {"source": "wallet", "target": target["id"], "amount": min(3, (10 if objective == "saver" else 7) - wallet)}
+            return {"source": "wallet", "target": rng.choice(spec["targets"]),
+                    "amount": min(3, (10 if objective == "saver" else 7) - wallet)}
         return None
     return None
 

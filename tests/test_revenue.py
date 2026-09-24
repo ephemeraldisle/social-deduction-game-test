@@ -133,12 +133,13 @@ class RevenuePlanningTests(unittest.TestCase):
         for phase in ('pledge','vote','contribute'):
             o=self.modern_view('scout',kind=phase,wallet=0,pot=tokens(blue=7),score={'blue':3,'red':0})
             p=ready(o);action=p.choose_action(o)
-            self.assertEqual(p.last_decision['details']['planned_deposit']['blue'],int(phase=='vote'))
+            self.assertEqual(p.last_decision['details']['planned_deposit']['blue'],int(phase in ('pledge','vote')))
             if phase=='pledge': self.assertEqual(action['tokens'],tokens())
 
     def test_close_race_targets_three_opponent_wins_and_previous_policies_restore(self):
         o=self.modern_view('scout',objective='close_race',score={'blue':2,'red':2})
-        p=ready(o);self.assertEqual(p.tactical_side(o),'red')
+        p=ready(o);self.assertEqual(p.tactical_side(o),'blue')
+        o['public']['score']['blue']=3;self.assertEqual(p.tactical_side(o),'red')
         o['public']['score']['red']=3;self.assertEqual(p.tactical_side(o),'blue')
         old=view('echo');p=ready(old);p.version='social.9';p.choose_action(old)
         restored=restore_policy(json.loads(json.dumps(p.snapshot())))

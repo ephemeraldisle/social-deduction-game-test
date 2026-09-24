@@ -9,6 +9,7 @@ from .types import ObjectiveCard
 NAMES = {
     "loyalist": "Loyalist", "saver": "Saver", "spendthrift": "Spendthrift",
     "exact_change": "Exact Change", "opposition_patron": "Opposition Patron",
+    "green_machine": "Green Machine",
     "close_race": "Close Race", "reliable_partner": "Reliable Partner",
     "passenger": "Passenger", "contrarian": "Contrarian",
 }
@@ -50,13 +51,30 @@ def paid_deposits(history, color, player_id=None):
                if player_id is None or pid == player_id)
 
 
+def green_added(history):
+    """All Green entering missions; later theft/recoloring does not erase it."""
+    return paid_deposits(history, "green") + sum(
+        record.get("reserve_added", 0) + sum(
+            (effect["type"] == "echo" and effect["color"] == "green")
+            or (effect["type"] == "recolorer" and effect["to"] == "green" and effect["changed"])
+            for effect in record.get("effects", []))
+        for record in history)
+
+
+def token_totals(history):
+    """Resolved table-wide totals, never current sealed payments or individuals."""
+    return {"paid": {color: paid_deposits(history, color) for color in ("blue", "red", "green")},
+            "green_added": green_added(history)}
+
+
 def reliable_attempts(history, player_id):
     count = 0
     for record in history:
         if record["penalty"] or player_id not in record["crew"]:
             continue
         original = record["original_contributions"][player_id]
-        if sum(original.values()) >= 2 and original == record["pledges"][player_id]:
+        if (original["blue"] >= 2 and original["blue"] == record["pledges"][player_id]
+                and original["red"] == original["green"] == 0):
             count += 1
     return count
 
@@ -78,6 +96,8 @@ def condition_satisfied(player, score, history, winner, missions_to_win=3):
         return player.wallet == 7
     if kind == "opposition_patron":
         return paid_deposits(history, opposing(player.team)) >= 20
+    if kind == "green_machine":
+        return green_added(history) >= 20
     if kind == "close_race":
         return score[opposing(player.team)] == missions_to_win - 1
     if kind == "reliable_partner":
@@ -125,10 +145,14 @@ def private_card(player, score, history, missions_to_win=3):
         "opposition_patron": (f"Win if {own} wins {number} missions and at least 20 originally paid {other} tokens "
                               "were deposited by all players combined across the whole game. Bonuses, penalties, "
                               "and recoloring do not count. Later theft does not erase deposits; paying a recovered "
-                              "token again counts again. The exact global total is hidden."),
+                              "token again counts again. Your tracker shows the table-wide total after each resolution."),
+        "green_machine": (f"Win if {own} wins {number} missions and at least 20 Green tokens were added to "
+                          "missions across the whole table and game. All sources count: paid deposits, "
+                          "Green reserves, ability bonuses, and tokens recolored into Green. Later theft "
+                          "or recoloring away from Green does not erase prior additions. Your tracker shows the table-wide total after each resolution."),
         "close_race": f"Win if {own} wins its {ordinal} mission when {other} has exactly {target} mission wins: a {missions_to_win}–{target} finish.",
         "reliable_partner": (f"Win if {own} wins {number} missions and on at least 2 approved attempts your original "
-                             "contribution exactly matched your pledge in all three colors and totaled at least "
+                             "contribution matched your pledged quantity entirely in Blue and totaled at least "
                              "2 tokens. Two attempts on the same mission count. Later modifications do not matter."),
         "passenger": (f"Win if {own} wins {number} missions and on at least 1 approved attempt that completed a "
                       "mission you were on the crew and originally contributed 0 tokens. Either team's mission "
@@ -148,11 +172,15 @@ def private_card(player, score, history, missions_to_win=3):
         label = "Kept qualifying pledges" if kind == "reliable_partner" else "Qualifying passenger attempts"
         progress.update(label=label, value=value, target=target, condition_met=value >= target,
                         text=f"{label}: {value} / {target}. Your entire history counts, including before receiving this card.")
-    elif kind == "opposition_patron":
-        own_paid = paid_deposits(history, opposing(player.team), player.id)
-        progress.update(visibility="hidden_global", label="Table-wide paid deposits", target=20,
-                        own_paid=own_paid,
-                        text=f"Global progress is hidden. Your own paid {other} deposits: {own_paid}. Player reports are claims, not verified progress.")
+    elif kind in ("opposition_patron", "green_machine"):
+        color = "green" if kind == "green_machine" else opposing(player.team)
+        own_paid = paid_deposits(history, color, player.id)
+        value = green_added(history) if kind == "green_machine" else paid_deposits(history, color)
+        label = "Green added across the table" if kind == "green_machine" else f"{color.title()} paid across the table"
+        progress.update(visibility="public", label=label, value=value, target=20,
+                        condition_met=value >= 20, own_paid=own_paid, color=color,
+                        text=f"{label}: {value} / 20. Your own paid {color.title()} deposits: {own_paid}. "
+                             f"Updated after each resolved attempt. {own} must also win the game.")
     elif kind == "close_race":
         value = score[opposing(player.team)]
         progress.update(label=f"{other} mission wins", value=value, target=target, condition_met=value == target,

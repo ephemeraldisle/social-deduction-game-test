@@ -1,10 +1,10 @@
 {
-  "rules_version": "0.1-abilities-dev.3",
+  "rules_version": "0.1-abilities-dev.5",
   "mode": "development_abilities",
   "players": 8,
   "starting_wallet": 5,
   "income": 1,
-  "vote_income": 1,
+  "proposal_income": 1,
   "blue_players": 5,
   "threshold_min": 15,
   "threshold_max": 30,
@@ -28,6 +28,7 @@
     "spendthrift",
     "exact_change",
     "opposition_patron",
+    "green_machine",
     "close_race",
     "reliable_partner",
     "passenger"

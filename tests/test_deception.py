@@ -45,6 +45,7 @@ def accusation_view(view, speaker='p0', target='p2', attempt=2):
 class RedDeceptionTests(unittest.TestCase):
     def test_blue_cover_pledge_and_private_red_plan_are_separate(self):
         view = observation('pledge', team='red')
+        view['public']['score']['red'] = 2  # A decisive attack takes priority over building cover.
         view['public']['crew'] = ['p0', 'p1']
         policy = SocialPolicy(3, traits=CALM)
         pledge = policy.choose_action(view)['tokens']
@@ -65,29 +66,33 @@ class RedDeceptionTests(unittest.TestCase):
     def test_red_rejects_blue_crew_without_automatically_accusing_a_cooperator(self):
         view = trusted_history()
         view['private']['team'] = 'red'
+        view['public']['score']['blue'] = 2  # Never buy cover by conceding the game.
         view['phase'], view['action_spec'] = 'vote', {'type': 'vote'}
         view['public'].update(crew=['p0', 'p2'], pledges={'p0': tokens(blue=4), 'p2': tokens(blue=4)}, votes=[])
         policy = SocialPolicy(3, 7, traits=CALM)
         action = policy.choose_action(view)
         self.assertFalse(action['approve'])
-        self.assertEqual(action['complaints'], [{'modifier': 'more', 'color': 'blue'}])
-        self.assertTrue(policy.last_decision['details']['suspected_blue_block'])
+        self.assertEqual(action['complaints'][0]['modifier'], 'more')
+        self.assertEqual(action['complaints'][0]['color'], 'blue')
         self.assertIsNone(policy.last_decision['details']['accusation_target'])
 
-    def test_both_sides_accuse_a_crewmate_with_an_objectionable_pledge(self):
+    def test_both_sides_use_public_grounds_when_complaining_about_red_funding(self):
         for team in ('blue', 'red'):
             with self.subTest(team=team):
                 view = observation('vote', team=team)
                 view['public'].update(crew=['p1', 'p2'], pledges={'p1': tokens(red=3), 'p2': tokens()})
                 policy = SocialPolicy(3, traits=CALM)
-                action = policy.choose_action(view)
-                self.assertFalse(action['approve'])
-                self.assertEqual(action['complaints'], [{'modifier': 'less', 'player_id': 'p1'}])
-                self.assertIn('public Red pledge', policy.last_decision['details']['complaint_reason'])
+                policy.choose_action(view)
+                complaint, reason = policy.complaint(view, policy.last_decision['details'], False)
+                self.assertIn(complaint, [{'modifier': 'less', 'color': 'red'},
+                                          {'modifier': 'more', 'player_id': 'p1', 'color': 'blue'},
+                                          {'modifier': 'more', 'color': 'blue'},
+                                          {'modifier': 'more', 'player_id': 'p2', 'color': 'blue'}])
+                self.assertTrue(reason)
 
-    def test_both_sides_can_protest_exclusion_instead_of_accusing(self):
+    def test_both_sides_can_request_access_for_an_unmet_objective(self):
         for team in ('blue', 'red'):
-            view = observation('vote', team=team)
+            view = observation('vote', team=team, objective='spendthrift')
             view['public'].update(crew=['p1', 'p2'], pledges={'p1': tokens(blue=4), 'p2': tokens(blue=4)})
             policy = SocialPolicy(3, traits=Traits(1, .3, .3))
             action = policy.choose_action(view)
@@ -112,7 +117,9 @@ class RedDeceptionTests(unittest.TestCase):
         policy = SocialPolicy(3, traits=CALM)
         action = policy.choose_action(view)
         self.assertFalse(action['approve'])
-        self.assertEqual(action['complaints'], [{'modifier': 'less', 'player_id': 'p0'}])
+        complaint = action['complaints'][0]
+        self.assertTrue(complaint == {'modifier': 'less', 'player_id': 'p0'} or
+                        complaint.get('modifier') == 'more' and complaint.get('color') == 'blue')
         self.assertGreater(policy.beliefs.estimate('p0')['pledge_reliability'], .75)
         self.assertTrue(policy.last_decision['details']['suspected_red_block'])
         # A risk objection relaxes before repeated rejections hand Red a penalty.
@@ -121,7 +128,7 @@ class RedDeceptionTests(unittest.TestCase):
 
     def test_blue_close_race_hides_temporary_red_goal_in_pledge_vote_and_report(self):
         view = observation('pledge', objective='close_race')
-        view['public'].update(crew=['p0', 'p1'], score={'blue': 1, 'red': 0})
+        view['public'].update(crew=['p0', 'p1'], score={'blue': 2, 'red': 0})
         policy = SocialPolicy(3, traits=CALM)
         pledge = policy.choose_action(view)['tokens']
         self.assertGreater(pledge['blue'], 0)

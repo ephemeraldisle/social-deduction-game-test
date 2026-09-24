@@ -60,6 +60,8 @@ class AllegianceStrategyTests(unittest.TestCase):
             for private in (False, True):
                 with self.subTest(objective=objective, private=private):
                     o = proposal(objective, private=private)
+                    if objective == "close_race":
+                        o["public"]["score"]["blue"] = 2
                     # Rich Red and poor alternatives used to tempt crew planning.
                     o["public"]["players"][1]["wallet"] = 20
                     p = ready(o)

@@ -12,9 +12,9 @@ def frame_label(previous, current):
         return "The table is dealt"
     kinds = {event["type"] for event in new_events}
     if "game_over" in kinds:
-        return "Final reports · game over"
+        return "Game over"
     if "reports_revealed" in kinds:
-        return "Reports revealed · income paid"
+        return "Reports revealed"
     if "attempt_resolved" in kinds:
         return "Mission result revealed"
     if "proposal_approved" in kinds:
@@ -41,7 +41,7 @@ def frame_label(previous, current):
     return "Table updated"
 
 
-def designer_view(game, last_action, bot_decision=None, agent_predictions=()):
+def designer_view(game, last_action, bot_decision=None, agent_predictions=(), player_assessment=None):
     """Explicit inspection data, never attached to ordinary player frames."""
     return deepcopy({
         "players": [{"id": p.id, "team": p.team, "wallet": p.wallet,
@@ -52,6 +52,7 @@ def designer_view(game, last_action, bot_decision=None, agent_predictions=()):
         "sealed_submissions": game.pending,
         "last_action": last_action,
         "bot_decision": bot_decision,
+        "player_assessment": player_assessment,
         "agent_predictions": list(agent_predictions),
         "last_resolution": game.resolutions[-1] if game.resolutions else None,
     })
@@ -65,10 +66,18 @@ class ReplayTimeline:
         self.last_position = len(session.game.action_log)
         game = Game.from_snapshot(session.initial)
         explanations = {entry["request_id"]: entry for entry in session.bot_decisions} if designer else {}
+        player_assessment = None
         previous = None
         for position, record in enumerate([None, *session.game.action_log]):
+            explanation = explanations.get(record["request_id"]) if record else None
             if record:
                 game.submit(**record)
+                if (explanation and explanation["player_id"] == seat
+                        and explanation.get("details", {}).get("beliefs")):
+                    # Carry this seat's last recorded estimates forward, never
+                    # recompute with current bots or borrow a future decision.
+                    player_assessment = {**explanation, "position": position,
+                                         "action_type": record["action"]["type"]}
             observation = game.observe(seat)
             # Sealed responses by another seat create no player-visible step.
             if not designer and observation == previous:
@@ -83,8 +92,9 @@ class ReplayTimeline:
             self.timeline.append(entry)
             self.positions.append(position)
             self.frames.append({"observation": observation,
-                                "designer": designer_view(game, record, explanations.get(record["request_id"]) if record else None,
-                                                          [p for p in session.agent_predictions if p["position"] <= position])
+                                "designer": designer_view(game, record, explanation,
+                                                          [p for p in session.agent_predictions if p["position"] <= position],
+                                                          player_assessment)
                                 if designer else None})
             previous = observation
         if game.snapshot() != session.game.snapshot():

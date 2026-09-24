@@ -514,6 +514,9 @@ class SocialPolicy:
         return own
 
     def choose_action(self, observation):
+        if observation["public"]["rules"].get("hidden_wallets"):
+            from .hidden_policy import choose_action
+            return choose_action(self, observation)
         self._forecast_cache = {}
         try:
             return self._choose_action(observation)
